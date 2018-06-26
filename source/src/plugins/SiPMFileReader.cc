@@ -57,11 +57,10 @@ namespace dqm4hep {
     protected:
       std::istringstream headerStream;
       std::istringstream dataStream;
-      std::vector<float> eventContainer;
 
     private:
-      TiXmlDocument        m_document = {};
-      TiXmlElement        *m_currentEvent = {nullptr};
+      TiXmlDocument        m_document = {};               // Do we need these? We're not loading in an actual document
+      TiXmlElement        *m_currentEvent = {nullptr};    // Do we need these? We're not loading in an actual document
     };
     
     //-------------------------------------------------------------------------------------------------
@@ -73,7 +72,7 @@ namespace dqm4hep {
 
     //-------------------------------------------------------------------------------------------------
 
-    StatusCode DreamSiPMReader::open(const std::string &fname) { // Any other necessary inputs?
+    StatusCode DreamSiPMReader::open(const std::string &fname) {
 
       std::FILE *p_dataFile = std::fopen(fname, "rb");
       bool isFileOpenable = p_dataFile;
@@ -164,11 +163,13 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode DreamSiPMReader::readNextEvent() {
+      EventPtr event = GenericEvent::make_shared();
+      GenericEvent *generic = event->getEvent<GenericEvent>();
 
-      GenericEvent event;
-
+      std::vector<float> eventContainer;
       std::string eventDelimiter = ";";
       std::string currentEventString;
+
       std::getline(dataStream, currentEventString);
 
       if (currentEventString.size() <= 1) {
@@ -178,23 +179,22 @@ namespace dqm4hep {
   
       dqm4hep::core::tokenize(currentEventString, eventContainer, eventDelimiter);
   
+      if (eventContainer.size() != 66) { // This might change based on number of actual members?
+	dqm_error("Event has wrong number of members");
+	throw StatusCodeException(STATUS_CODE_FAILURE);
+      } 
+
       std::vector<float> ev_eventNum = {eventContainer[0]}
-      event.setValues("Event", ev_eventNum);
+      generic->setValues("Event", ev_eventNum);
       eventContainer.erase[0];
 
       std::vector<float> ev_time = {eventContainer[0]}
-      event.setValues("Time", ev_time);
+      generic->setValues("Time", ev_time);
       eventContainer.erase[0];
   
-      if (eventContainer.size() == 64) {
-	event.setValues("Channels", eventContainer);
-      }
-      else {
-	dqm_error("Event {0} : wrong number of members", ev_eventNum[0]);
-	throw StatusCodeException(STATUS_CODE_FAILURE);
-      }
-
-      onEventRead().emit(event); // Do we need to use the pointer, or can we just put in the event itself?
+      generic->setValues("Channels", eventContainer);
+      
+      onEventRead().emit(event);
       return STATUS_CODE_SUCCESS;
     }
 
