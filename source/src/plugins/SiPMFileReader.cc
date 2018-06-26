@@ -25,6 +25,10 @@
  * @copyright CNRS , IPNL
  */
 
+
+// -- std headers 
+#include <sstream>
+
 // -- dqm4hep headers
 #include <dqm4hep/Event.h>
 #include <dqm4hep/EventReader.h>
@@ -43,7 +47,7 @@ namespace dqm4hep {
      */
     class SiPMFileReader : public EventReader {
     public:
-      SiPMFileReader() = default;
+      SiPMFileReader() = default; // The compiler wants headerStream, dataStream and eventContainer initialised in the member intialisation list
       ~SiPMFileReader() override;
       SiPMFileReader(const SiPMFileReader&) = delete;
       SiPMFileReader& operator=(const SiPMFileReader&) = delete;
@@ -57,6 +61,7 @@ namespace dqm4hep {
     protected:
       std::istringstream headerStream;
       std::istringstream dataStream;
+      std::vector<float> eventContainer;
 
     private:
       TiXmlDocument        m_document = {};               // Do we need these? We're not loading in an actual document
@@ -72,9 +77,9 @@ namespace dqm4hep {
 
     //-------------------------------------------------------------------------------------------------
 
-    StatusCode DreamSiPMReader::open(const std::string &fname) {
+    StatusCode SiPMFileReader::open(const std::string &fname) {
 
-      std::FILE *p_dataFile = std::fopen(fname, "rb");
+      std::FILE *p_dataFile = std::fopen(fname.c_str(), "rb"); // cannot convert string to const char*
       bool isFileOpenable = p_dataFile;
 
       if(!isFileOpenable) {
@@ -97,15 +102,15 @@ namespace dqm4hep {
       int headerEndPos   = rawData.find(headerTagOpen) + headerTagOpen.size() - headerStartPos;
       int dataStartPos   = rawData.find(dataTagStart)  + dataTagStart.size();
 
-      headerStream = rawData.substr(headerStart, headerEnd); // We also want to store this as a parseable XML object
-      dataSteam    = rawData.substr(dataStartPos);
+      headerStream.str(rawData.substr(headerStartPos, headerEndPos));
+      dataStream.str(rawData.substr(dataStartPos));
 
       return STATUS_CODE_SUCCESS;
     }
 
     //-------------------------------------------------------------------------------------------------
 
-    StatusCode DreamSiPMReader::skipNEvents(int nEvents) {
+    StatusCode SiPMFileReader::skipNEvents(int nEvents) {
 
       for (int e=0; e<nEvents; e++) {
 	std::string currentEventString;
@@ -118,13 +123,18 @@ namespace dqm4hep {
 
     //-------------------------------------------------------------------------------------------------
 
-    StatusCode DreamSiPMReader::runInfo(core::Run &run) {
+    StatusCode SiPMFileReader::runInfo(core::Run &run) {
 
-      // So what this needs to do is parse headerStream as XML, to extract the important information, then place it into the runInfo container.
+      // this produces a warning, since the run variable isn't used
 
-      runInfo.setRunNumber();
-      runInfo.setDetectorName();
-      runInfo.setStartTime();
+      // We also need to parse headerStream as an XML here
+
+      /*
+      run.setRunNumber();
+      run.setDetectorName();
+      run.setStartTime();
+      */
+
       // other run info:
       //   temperature
       //   datetime
@@ -162,11 +172,11 @@ namespace dqm4hep {
 
     //-------------------------------------------------------------------------------------------------
 
-    StatusCode DreamSiPMReader::readNextEvent() {
+    StatusCode SiPMFileReader::readNextEvent() {
       EventPtr event = GenericEvent::make_shared();
       GenericEvent *generic = event->getEvent<GenericEvent>();
 
-      std::vector<float> eventContainer;
+      //std::vector<float> eventContainer;
       std::string eventDelimiter = ";";
       std::string currentEventString;
 
@@ -184,23 +194,20 @@ namespace dqm4hep {
 	throw StatusCodeException(STATUS_CODE_FAILURE);
       } 
 
-      std::vector<float> ev_eventNum = {eventContainer[0]}
+      std::vector<float> ev_eventNum = {eventContainer[0]};
       generic->setValues("Event", ev_eventNum);
-      eventContainer.erase[0];
-
-      std::vector<float> ev_time = {eventContainer[0]}
+      std::vector<float> ev_time = {eventContainer[0]};
       generic->setValues("Time", ev_time);
-      eventContainer.erase[0];
-  
+      eventContainer.erase(eventContainer.begin(),eventContainer.begin()+1);
       generic->setValues("Channels", eventContainer);
       
       onEventRead().emit(event);
       return STATUS_CODE_SUCCESS;
     }
 
-    StatusCode DreamSiPMReader::close() {
+    StatusCode SiPMFileReader::close() {
 
-      // We already close the file in DreamSiPMReader::open(), so we don't need to close it here.
+      // We already close the file in SiPMFileReader::open(), so we don't need to close it here.
       // Moreover, we *can't* really close it here anyway, since it will go out of scope once open() returns.
 
       // So what do we need to do here, if anything?
