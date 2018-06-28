@@ -63,9 +63,6 @@ namespace dqm4hep {
       std::istringstream dataStream;
       std::vector<float> eventContainer;
 
-    private:
-      TiXmlDocument        m_document = {};               // Do we need these? We're not loading in an actual document
-      TiXmlElement        *m_currentEvent = {nullptr};    // Do we need these? We're not loading in an actual document
     };
     
     //-------------------------------------------------------------------------------------------------
@@ -79,7 +76,7 @@ namespace dqm4hep {
 
     StatusCode SiPMFileReader::open(const std::string &fname) {
 
-      std::FILE *p_dataFile = std::fopen(fname.c_str(), "rb"); // cannot convert string to const char*
+      std::FILE *p_dataFile = std::fopen(fname.c_str(), "rb");
       bool isFileOpenable = p_dataFile;
 
       if(!isFileOpenable) {
@@ -176,7 +173,6 @@ namespace dqm4hep {
       EventPtr event = GenericEvent::make_shared();
       GenericEvent *generic = event->getEvent<GenericEvent>();
 
-      //std::vector<float> eventContainer;
       std::string eventDelimiter = ";";
       std::string currentEventString;
 
@@ -189,7 +185,7 @@ namespace dqm4hep {
   
       dqm4hep::core::tokenize(currentEventString, eventContainer, eventDelimiter);
   
-      if (eventContainer.size() != 66) { // This might change based on number of actual members?
+      if (eventContainer.size() != 64) {
 	dqm_error("Event has wrong number of members");
 	throw StatusCodeException(STATUS_CODE_FAILURE);
       } 
