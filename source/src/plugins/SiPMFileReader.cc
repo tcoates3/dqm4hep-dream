@@ -185,16 +185,16 @@ namespace dqm4hep {
   
       dqm4hep::core::tokenize(currentEventString, eventContainer, eventDelimiter);
   
-      if (eventContainer.size() != 64) {
+      if (eventContainer.size() != 66 {
 	dqm_error("Event has wrong number of members");
 	throw StatusCodeException(STATUS_CODE_FAILURE);
       } 
 
       std::vector<float> ev_eventNum = {eventContainer[0]};
       generic->setValues("Event", ev_eventNum);
-      std::vector<float> ev_time = {eventContainer[0]};
+      std::vector<float> ev_time = {eventContainer[1]};
       generic->setValues("Time", ev_time);
-      eventContainer.erase(eventContainer.begin(),eventContainer.begin()+1);
+      eventContainer.erase(eventContainer.begin(),eventContainer.begin()+2);
       generic->setValues("Channels", eventContainer);
       
       onEventRead().emit(event);
