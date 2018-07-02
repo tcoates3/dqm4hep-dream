@@ -62,6 +62,7 @@ namespace dqm4hep {
       std::istringstream headerStream;
       std::istringstream dataStream;
       std::vector<float> eventContainer;
+      TiXmlDocument header;
 
     };
     
@@ -81,8 +82,10 @@ namespace dqm4hep {
 
       if(!isFileOpenable) {
 	dqm_error("The file at {0} could not be opened.", fname);
-	throw StatusCodeException(STATUS_CODE_FAILURE);
+	return STATUS_CODE_FAILURE;
       }
+
+      // Need to open the file, read in the header, then read it line by line, instead of dumping the string as a whole
 
       std::string rawData;
       std::fseek(p_dataFile, 0, SEEK_END);
@@ -99,8 +102,11 @@ namespace dqm4hep {
       int headerEndPos   = rawData.find(headerTagOpen) + headerTagOpen.size() - headerStartPos;
       int dataStartPos   = rawData.find(dataTagStart)  + dataTagStart.size();
 
-      headerStream.str(rawData.substr(headerStartPos, headerEndPos));
       dataStream.str(rawData.substr(dataStartPos));
+
+      std::string headerString = rawData.substr(headerStartPos, headerEndPos);
+
+      header.Parse(headerString.c_str());
 
       return STATUS_CODE_SUCCESS;
     }
@@ -170,8 +176,8 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode SiPMFileReader::readNextEvent() {
-      EventPtr event = GenericEvent::make_shared();
-      GenericEvent *generic = event->getEvent<GenericEvent>();
+      EventPtr pEvent = GenericEvent::make_shared();
+      GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
 
       std::string eventDelimiter = ";";
       std::string currentEventString;
@@ -185,28 +191,31 @@ namespace dqm4hep {
   
       dqm4hep::core::tokenize(currentEventString, eventContainer, eventDelimiter);
   
-      if (eventContainer.size() != 66 {
+      if (eventContainer.size() != 66) {
 	dqm_error("Event has wrong number of members");
 	throw StatusCodeException(STATUS_CODE_FAILURE);
       } 
 
+      // So the setValues() function has to be done on a GenericEvent
+      // And setEventNumber() and setTimeStamp() functions have to be done on an Event
+
       std::vector<float> ev_eventNum = {eventContainer[0]};
-      generic->setValues("Event", ev_eventNum);
+      pEvent->setEventNumber(ev_eventNum[0]);
+
       std::vector<float> ev_time = {eventContainer[1]};
-      generic->setValues("Time", ev_time);
+      // This fails because the accepted type is a const TimePoint&
+      //pEvent->setTimeStamp(ev_time[0]);  
+
       eventContainer.erase(eventContainer.begin(),eventContainer.begin()+2);
-      generic->setValues("Channels", eventContainer);
-      
-      onEventRead().emit(event);
+      pGenericEvent->setValues("Channels", eventContainer);
+     
+      onEventRead().emit(pEvent);
       return STATUS_CODE_SUCCESS;
     }
 
     StatusCode SiPMFileReader::close() {
 
-      // We already close the file in SiPMFileReader::open(), so we don't need to close it here.
-      // Moreover, we *can't* really close it here anyway, since it will go out of scope once open() returns.
-
-      // So what do we need to do here, if anything?
+      // Close the file here
 
       return STATUS_CODE_SUCCESS;
     }
