@@ -1,0 +1,40 @@
+<dqm4hep>
+  
+  <!-- Application settings -->
+  <settings mode="EventReader">
+    <parameter name="EnableStatistics"> true </parameter>
+    <parameter name="EventReader"> SiPMFileReader </parameter>
+    <parameter name="EventFileName">/lustre/scratch/epp/ilc/tc297/testbeamData/dream/MADA_data/RUN9.txt </parameter>
+    <parameter name="CyclePeriod"> 1 </parameter>
+    <parameter name="CycleCounter"> 0 </parameter>
+    <parameter name="CycleTimeout"> 0 </parameter>
+    <parameter name="RunControl"> TestRC </parameter>
+    <parameter name="EventCollector"> TestEventCollector </parameter>
+    <parameter name="EventSource"> TestSource </parameter>
+    <parameter name="MonitorElementCollector"> TestMeCollector </parameter>
+  </settings>
+  
+  <!-- Archiver settings -->
+  <archiver enable="true">
+    <parameter name="FileName" value="Archive.root"/>
+    <parameter name="OpenMode" value="RECREATE"/>
+    <parameter name="AllowOverwrite" value="false"/>
+    <parameter name="AppendRunNumber" value="true"/>
+    <selectors>
+      <selector regex=".*" select="true"/>
+    </selectors>    
+  </archiver>
+  
+  <!-- The analysis module goes here -->
+  <module type="SiPMHitmap" name="mySiPMHitmap"/>
+
+  <!-- Monitor elements in the <storage> tag -->
+  <storage>
+    <style theme="polar"/>
+    <monitorElements>
+      <bookElement type="TH2I" path="/" name="Hitmap" title="A hitmap of the SiPM" nBinsX="8" minX="0" maxX="8" nBinsY="8" minY="0" maxY="8">
+      </bookElement>
+    </monitorElements>
+  </storage>
+
+</dqm4hep>
