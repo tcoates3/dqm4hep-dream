@@ -33,10 +33,11 @@
 #include <dqm4hep/RootHeaders.h>
 #include <dqm4hep/Module.h>
 #include "dqm4hep/PluginManager.h"
+#include "dqm4hep/OnlineElement.h"
+#include "dqm4hep/ModuleApi.h"
 
 namespace dqm4hep {
 
-  // Everything would be so much easier if the namespace was core, not dream
   namespace dream {
     
     class SiPMHitmap : public dqm4hep::online::AnalysisModule {
@@ -56,25 +57,25 @@ namespace dqm4hep {
       void process(core::EventPtr event) override;
       
     private:
-      core::MonitorElement* m_pHitmap;
+      online::OnlineElementPtr m_pHitmap = {nullptr};
     };
     
     //-------------------------------------------------------------------------------------------------
     
     void SiPMHitmap::readSettings(const core::TiXmlHandle &xmlHandle) {
 
-      m_pHitmap = NULL;
-
-      // The DQMXmlHelper class no longer exists, so a new function is needed to book the monitor element
-      RETURN_RESULT_IF(core::STATUS_CODE_SUCCESS, !=, DQMXmlHelper::bookMonitorElement(this, xmlHandle, "sipm_hitmap_1", m_pHitmap));
-
-      // It also doesn't like having a possible return in a void function, but this is what I should be doing. Can I just override this function to return a statuscode?
+      auto element = xmlHandle.Element();
+      core::TiXmlPrinter printer;
+      element->Accept(&printer);
 
     }
     
     //-------------------------------------------------------------------------------------------------
     
     void SiPMHitmap::initModule() {
+
+      // What are the arguments for this? What is a "Module" type object?
+      m_pHitmap = online::ModuleApi::getMonitorElement(this, "/", "nameOfTheMonitorElement");
 
     }
     
@@ -110,25 +111,24 @@ namespace dqm4hep {
     
     //-------------------------------------------------------------------------------------------------
 
-    void SiPMHitmap::process(core::EventPtr event) {
+    void SiPMHitmap::process(core::EventPtr pEvent) {
 
-      if(nullptr == event) {
+      if(nullptr == pEvent) {
 	dqm_warning("Event pointer is invalid - skipping this event");
 	return;
       }
-      
-      // The variable event is just a pointer, but I have to make it a GenericEvent for the things below to work. Cast it?
 
       std::vector<float> eventChannels;
-      event->getValues("Channels", eventChannels);
+      core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
+      pGenericEvent->getValues("Channels", eventChannels);
 
       int i = 0;
       int j = 0;
       int channelNum = 0;
 
-      for(i=0; i<8; i++) { // the columns
+      for(i=0; i<8; i++) {
 	for(j=0;j<8; j++) {
-	  m_pHitmap->get<TH2I>()->Fill(i,j,eventChannels[channelNum]);
+	  m_pHitmap->objectTo<TH2I>()->Fill(i,j,eventChannels[channelNum]);
 	  std::cout << "(i, j): " << i << ", " << j << std::endl;
 	  std::cout << "Channel no.:" << channelNum << std::endl;
 	  channelNum++;
@@ -137,7 +137,7 @@ namespace dqm4hep {
 
     }
     
-    DQM_PLUGIN_DECL(SiPMHitmap, "DreamSiPMHitmap");
+    DQM_PLUGIN_DECL(SiPMHitmap, "SiPMHitmap");
     
   }
   
