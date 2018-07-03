@@ -64,10 +64,6 @@ namespace dqm4hep {
     
     void SiPMHitmap::readSettings(const core::TiXmlHandle &xmlHandle) {
 
-      auto element = xmlHandle.Element();
-      core::TiXmlPrinter printer;
-      element->Accept(&printer);
-
     }
     
     //-------------------------------------------------------------------------------------------------
@@ -75,7 +71,7 @@ namespace dqm4hep {
     void SiPMHitmap::initModule() {
 
       // What are the arguments for this? What is a "Module" type object?
-      m_pHitmap = online::ModuleApi::getMonitorElement(this, "/", "nameOfTheMonitorElement");
+      //m_pHitmap = online::ModuleApi::getMonitorElement(this, "/", "nameOfTheMonitorElement");
 
     }
     
@@ -112,15 +108,17 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     void SiPMHitmap::process(core::EventPtr pEvent) {
-
+      dqm_warning("Inside process()");
       if(nullptr == pEvent) {
 	dqm_warning("Event pointer is invalid - skipping this event");
 	return;
       }
 
+      dqm_warning("Passed nullptr check");
       std::vector<float> eventChannels;
       core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
       pGenericEvent->getValues("Channels", eventChannels);
+      dqm_warning("Cast event");
 
       int i = 0;
       int j = 0;

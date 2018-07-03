@@ -4,7 +4,7 @@
   <settings mode="EventReader">
     <parameter name="EnableStatistics"> true </parameter>
     <parameter name="EventReader"> SiPMFileReader </parameter>
-    <parameter name="EventFileName">/lustre/scratch/epp/ilc/tc297/testbeamData/dream/MADA_data/RUN9.txt </parameter>
+    <parameter name="EventFileName">/lustre/scratch/epp/ilc/tc297/testbeamData/dream/sipm/MADA_data/RUN9.txt </parameter>
     <parameter name="CyclePeriod"> 1 </parameter>
     <parameter name="CycleCounter"> 0 </parameter>
     <parameter name="CycleTimeout"> 0 </parameter>

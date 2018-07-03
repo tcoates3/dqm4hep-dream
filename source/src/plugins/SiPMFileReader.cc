@@ -176,6 +176,7 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode SiPMFileReader::readNextEvent() {
+      dqm_warning("Inside readNextEvent()");
       EventPtr pEvent = GenericEvent::make_shared();
       GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
 
@@ -185,7 +186,7 @@ namespace dqm4hep {
       std::getline(dataStream, currentEventString);
 
       if (currentEventString.size() <= 1) {
-	dqm_warning("Event is blank");
+	dqm_warning("Event is blank!!");
 	return STATUS_CODE_SUCCESS;
       }
   
@@ -193,23 +194,21 @@ namespace dqm4hep {
   
       if (eventContainer.size() != 66) {
 	dqm_error("Event has wrong number of members");
-	throw StatusCodeException(STATUS_CODE_FAILURE);
+	return STATUS_CODE_FAILURE;
       } 
-
-      // So the setValues() function has to be done on a GenericEvent
-      // And setEventNumber() and setTimeStamp() functions have to be done on an Event
 
       std::vector<float> ev_eventNum = {eventContainer[0]};
       pEvent->setEventNumber(ev_eventNum[0]);
 
-      std::vector<float> ev_time = {eventContainer[1]};
-      // This fails because the accepted type is a const TimePoint&
-      //pEvent->setTimeStamp(ev_time[0]);  
+      std::vector<int> ev_time = {eventContainer[1]};
+      pEvent->setTimeStamp(core::time::asPoint(ev_time[0]));
 
       eventContainer.erase(eventContainer.begin(),eventContainer.begin()+2);
       pGenericEvent->setValues("Channels", eventContainer);
-     
+
+      dqm_warning("Before emitting event");
       onEventRead().emit(pEvent);
+      dqm_warning("After emitting event");
       return STATUS_CODE_SUCCESS;
     }
 
