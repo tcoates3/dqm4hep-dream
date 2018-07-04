@@ -176,6 +176,11 @@ namespace dqm4hep {
       std::vector<float> eventContainer;
 
       while (eventContainer.size() == 0) {
+	if (inputFile.eof() == true) {
+	  dqm_info("Reached end of file");
+	  return STATUS_CODE_OUT_OF_RANGE;
+	}
+
 	std::getline(inputFile, currentEventString);
 	dqm4hep::core::tokenize(currentEventString, eventContainer, eventDelimiter);
       }
@@ -185,7 +190,12 @@ namespace dqm4hep {
 	return STATUS_CODE_FAILURE;
       } 
 
-      std::vector<float> ev_eventNum = {eventContainer[0]};
+      if (eventContainer[0] > 30000) {
+	dqm_error("Over 30,000 - ending run");
+	return STATUS_CODE_FAILURE;
+      }
+
+      std::vector<int> ev_eventNum = {eventContainer[0]};
       pEvent->setEventNumber(ev_eventNum[0]);
 
       std::vector<int> ev_time = {eventContainer[1]};
@@ -194,7 +204,9 @@ namespace dqm4hep {
       eventContainer.erase(eventContainer.begin(),eventContainer.begin()+2);
       pGenericEvent->setValues("Channels", eventContainer);
 
-      //dqm_info("File reader reports:     event {0}", ev_eventNum[0]);
+      if (ev_eventNum[0]%1000 == 0) {
+	dqm_info("File reader reports:     event {0}", ev_eventNum[0]);
+      }
 
       onEventRead().emit(pEvent);
       return STATUS_CODE_SUCCESS;
