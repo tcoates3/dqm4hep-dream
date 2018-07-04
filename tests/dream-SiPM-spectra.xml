@@ -16,7 +16,7 @@
   
   <!-- Archiver settings -->
   <archiver enable="true">
-    <parameter name="FileName" value="ArchiveHitmap.root"/>
+    <parameter name="FileName" value="ArchiveSpectra.root"/>
     <parameter name="OpenMode" value="RECREATE"/>
     <parameter name="AllowOverwrite" value="true"/>
     <parameter name="AppendRunNumber" value="false"/>
