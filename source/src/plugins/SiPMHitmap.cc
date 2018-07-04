@@ -70,8 +70,7 @@ namespace dqm4hep {
     
     void SiPMHitmap::initModule() {
 
-      // What are the arguments for this? What is a "Module" type object?
-      //m_pHitmap = online::ModuleApi::getMonitorElement(this, "/", "nameOfTheMonitorElement");
+      m_pHitmap = online::ModuleApi::getMonitorElement(this, "/", "Hitmap");
 
     }
     
@@ -108,17 +107,19 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     void SiPMHitmap::process(core::EventPtr pEvent) {
-      dqm_warning("Inside process()");
+
       if(nullptr == pEvent) {
 	dqm_warning("Event pointer is invalid - skipping this event");
 	return;
       }
 
-      dqm_warning("Passed nullptr check");
       std::vector<float> eventChannels;
       core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
       pGenericEvent->getValues("Channels", eventChannels);
-      dqm_warning("Cast event");
+      
+      if (pEvent->getEventNumber()%1000 == 0) {
+	dqm_info("Analysis module reports: event {0}",pEvent->getEventNumber());
+      }
 
       int i = 0;
       int j = 0;
@@ -127,8 +128,6 @@ namespace dqm4hep {
       for(i=0; i<8; i++) {
 	for(j=0;j<8; j++) {
 	  m_pHitmap->objectTo<TH2I>()->Fill(i,j,eventChannels[channelNum]);
-	  std::cout << "(i, j): " << i << ", " << j << std::endl;
-	  std::cout << "Channel no.:" << channelNum << std::endl;
 	  channelNum++;
 	}
       }

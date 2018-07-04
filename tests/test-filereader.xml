@@ -18,8 +18,8 @@
   <archiver enable="true">
     <parameter name="FileName" value="Archive.root"/>
     <parameter name="OpenMode" value="RECREATE"/>
-    <parameter name="AllowOverwrite" value="false"/>
-    <parameter name="AppendRunNumber" value="true"/>
+    <parameter name="AllowOverwrite" value="true"/>
+    <parameter name="AppendRunNumber" value="false"/>
     <selectors>
       <selector regex=".*" select="true"/>
     </selectors>    
