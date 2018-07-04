@@ -47,7 +47,7 @@ namespace dqm4hep {
      */
     class SiPMFileReader : public EventReader {
     public:
-      SiPMFileReader() = default; // The compiler wants headerStream, dataStream and eventContainer initialised in the member intialisation list
+      SiPMFileReader() = default;
       ~SiPMFileReader() override;
       SiPMFileReader(const SiPMFileReader&) = delete;
       SiPMFileReader& operator=(const SiPMFileReader&) = delete;
@@ -59,10 +59,13 @@ namespace dqm4hep {
       core::StatusCode close() override;
       
     protected:
+      std::fstream inputFile;
       std::istringstream headerStream;
       std::istringstream dataStream;
-      std::vector<float> eventContainer;
       TiXmlDocument header;
+
+      std::string sPreamble;
+      std::string sHeader; 
 
     };
     
@@ -76,37 +79,26 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode SiPMFileReader::open(const std::string &fname) {
+      
+      inputFile.open(fname, std::fstream::in);
 
-      std::FILE *p_dataFile = std::fopen(fname.c_str(), "rb");
-      bool isFileOpenable = p_dataFile;
-
-      if(!isFileOpenable) {
-	dqm_error("The file at {0} could not be opened.", fname);
+      if (!inputFile.is_open()) {
+	dqm_error("Failed to open the file at {0}", fname);
 	return STATUS_CODE_FAILURE;
       }
 
-      // Need to open the file, read in the header, then read it line by line, instead of dumping the string as a whole
+      std::string currentLine;
 
-      std::string rawData;
-      std::fseek(p_dataFile, 0, SEEK_END);
-      rawData.resize(std::ftell(p_dataFile));
-      std::rewind(p_dataFile);
-      std::fread(&rawData[0], 1, rawData.size(), p_dataFile);
-      std::fclose(p_dataFile);
-
-      std::string headerTagOpen  = "<ACQUISITION_INFO>";
-      std::string headerTagClose = "</ACQUISITION_INFO>";
-      std::string dataTagStart   = "</START_NOTE>";
-
-      int headerStartPos = rawData.find(headerTagOpen);
-      int headerEndPos   = rawData.find(headerTagOpen) + headerTagOpen.size() - headerStartPos;
-      int dataStartPos   = rawData.find(dataTagStart)  + dataTagStart.size();
-
-      dataStream.str(rawData.substr(dataStartPos));
-
-      std::string headerString = rawData.substr(headerStartPos, headerEndPos);
-
-      header.Parse(headerString.c_str());
+      for(int i = 0; i < 7; i++) {
+	std::getline(inputFile, currentLine);
+	sPreamble += currentLine + "\n";
+      }
+      for(int i = 0; i < 300; i++) {
+	std::getline(inputFile, currentLine);
+	sHeader += currentLine + "\n";
+      }
+  
+      header.Parse(sHeader.c_str());
 
       return STATUS_CODE_SUCCESS;
     }
@@ -117,7 +109,7 @@ namespace dqm4hep {
 
       for (int e=0; e<nEvents; e++) {
 	std::string currentEventString;
-	std::getline(dataStream, currentEventString);
+	std::getline(inputFile, currentEventString);
 	currentEventString.clear();
       }
 
@@ -176,22 +168,18 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode SiPMFileReader::readNextEvent() {
-      dqm_warning("Inside readNextEvent()");
       EventPtr pEvent = GenericEvent::make_shared();
       GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
 
       std::string eventDelimiter = ";";
       std::string currentEventString;
+      std::vector<float> eventContainer;
 
-      std::getline(dataStream, currentEventString);
-
-      if (currentEventString.size() <= 1) {
-	dqm_warning("Event is blank!!");
-	return STATUS_CODE_SUCCESS;
+      while (eventContainer.size() == 0) {
+	std::getline(inputFile, currentEventString);
+	dqm4hep::core::tokenize(currentEventString, eventContainer, eventDelimiter);
       }
-  
-      dqm4hep::core::tokenize(currentEventString, eventContainer, eventDelimiter);
-  
+
       if (eventContainer.size() != 66) {
 	dqm_error("Event has wrong number of members");
 	return STATUS_CODE_FAILURE;
@@ -206,16 +194,14 @@ namespace dqm4hep {
       eventContainer.erase(eventContainer.begin(),eventContainer.begin()+2);
       pGenericEvent->setValues("Channels", eventContainer);
 
-      dqm_warning("Before emitting event");
+      //dqm_info("File reader reports:     event {0}", ev_eventNum[0]);
+
       onEventRead().emit(pEvent);
-      dqm_warning("After emitting event");
       return STATUS_CODE_SUCCESS;
     }
 
     StatusCode SiPMFileReader::close() {
-
-      // Close the file here
-
+      inputFile.close();
       return STATUS_CODE_SUCCESS;
     }
 
