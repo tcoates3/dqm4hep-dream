@@ -1,0 +1,44 @@
+<dqm4hep>
+  
+  <!-- Application settings -->
+  <settings mode="EventReader">
+    <parameter name="EnableStatistics"> true </parameter>
+    <parameter name="EventReader"> SiPMFileReader </parameter>
+    <parameter name="EventFileName">/lustre/scratch/epp/ilc/tc297/testbeamData/dream/sipm/MADA_data/RUN9_trunc.txt </parameter>
+    <parameter name="CyclePeriod"> 1 </parameter>
+    <parameter name="CycleCounter"> 0 </parameter>
+    <parameter name="CycleTimeout"> 0 </parameter>
+    <parameter name="RunControl"> TestRC </parameter>
+    <parameter name="EventCollector"> TestEventCollector </parameter>
+    <parameter name="EventSource"> TestSource </parameter>
+    <parameter name="MonitorElementCollector"> TestMeCollector </parameter>
+  </settings>
+  
+  <!-- Archiver settings -->
+  <archiver enable="true">
+    <parameter name="FileName" value="ArchiveHitmap.root"/>
+    <parameter name="OpenMode" value="RECREATE"/>
+    <parameter name="AllowOverwrite" value="true"/>
+    <parameter name="AppendRunNumber" value="false"/>
+    <selectors>
+      <selector regex=".*" select="true"/>
+    </selectors>    
+  </archiver>
+  
+  <!-- The analysis module goes here -->
+  <module type="SiPMChannelSpectra" name="mySiPMChannelSpectra"/>
+
+  <!-- Monitor elements in the <storage> tag -->
+  <storage>
+    <style theme="polar"/>
+    <monitorElements>
+
+      <for id="channelNum" begin="0" end="63" increment="1">
+	<bookElement type="TH1I" path="/" name="SpectrumCh$FOR{channelNum}" title="Spectrum for channel $FOR{channelNum}" nBinsX="200" minX="0" maxX="1000">
+	</bookElement>
+      </for>
+
+    </monitorElements>
+  </storage>
+
+</dqm4hep>
