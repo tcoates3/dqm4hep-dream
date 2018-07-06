@@ -7,7 +7,7 @@ The building process is managed by [CMake](http://cmake.org).
 
 Dependencies :
 - c++11 compiler
-- [DQM4hep](https://github.com/dqmhep/dqm4hep)
+- [DQM4hep](https://github.com/dqm4hep/dqm4hep)
 
 In the top level directory :
 
