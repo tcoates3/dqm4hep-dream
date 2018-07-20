@@ -79,7 +79,7 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode SiPMFileReader::open(const std::string &fname) {
-      
+     
       inputFile.open(fname, std::fstream::in);
 
       if (!inputFile.is_open()) {
@@ -120,47 +120,66 @@ namespace dqm4hep {
 
     StatusCode SiPMFileReader::runInfo(core::Run &run) {
 
-      // this produces a warning, since the run variable isn't used
+      TiXmlElement *xmlElement = header.RootElement();
+      dqm_debug("Root element is: {0}", xmlElement->ValueStr());
 
-      // We also need to parse headerStream as an XML here
+      TiXmlElement *xmlRunInfo = xmlElement->FirstChildElement();
+      dqm_debug(xmlRunInfo->ValueStr());
+      TiXmlNode *runChild = 0;
+      while (runChild = xmlRunInfo->IterateChildren(runChild)) {
+	std::string property = runChild->ValueStr();
+	std::string propertyContents = runChild->ToElement()->GetText();
+	if (property == "RUN_ID") {
+	  run.setRunNumber(std::stoi(propertyContents));
+	  continue;
+	}
+	// This is a placeholder for some simple function which can convert a string data intoa TimePoint
+	/*i f (property == "DATETIME") {
+	  continue;
+	  } */
+	run.setParameter(property, propertyContents);
+	dqm_debug(" {0}: {1}", property, propertyContents);
+      }
 
-      /*
-      run.setRunNumber();
-      run.setDetectorName();
-      run.setStartTime();
-      */
+      TiXmlElement *xmlConfigInfo = xmlRunInfo->NextSiblingElement();
+      dqm_debug(xmlConfigInfo->ValueStr());
+      TiXmlNode *configChild = 0;
+      while (configChild = xmlConfigInfo->IterateChildren(configChild)) {
+	std::string property = configChild->ValueStr();
+	std::string propertyContents = configChild->ToElement()->GetText();
+	run.setParameter(property, propertyContents);
+	dqm_debug(" {0}: {1}", configChild->ValueStr(), configChild->ToElement()->GetText());
+      }
 
-      // other run info:
-      //   temperature
-      //   datetime
-      //   temperature2
-      //   bias
-      //   detector board
-      //   detector model
-      //   detector SN
-      //   detector VOP
-      //   acquisition board sn
-      //   acquisition board RC
-      //   board count
-      //   board 1 id
-      //   board 2 id
-      // config info:
-      //   trigger mode
-      //   trigger level
-      //   data delay 1
-      //   trigger delay 1
-      //   data delay 2
-      //   trigger delay 2
-      //   trigger hold
-      //   polarity
-      //   pileup rejector
-      //   pileup time
-      //   integration time
-      //   baseline correction
-      //   baseline constant
-      //   noise filter
-      //   digital gain
-      //   correlated board
+      TiXmlElement *xmlBiasInfo = xmlConfigInfo->NextSiblingElement();
+      dqm_debug(xmlBiasInfo->ValueStr());
+      TiXmlNode *biasChild = 0;
+      while (biasChild = xmlBiasInfo->IterateChildren(biasChild)) {
+	std::string property = biasChild->ValueStr();
+	std::string propertyContents = biasChild->ToElement()->GetText();
+	run.setParameter(property, propertyContents);
+	dqm_debug(" {0}: {1}", biasChild->ValueStr(), biasChild->ToElement()->GetText());
+      }
+
+      TiXmlElement *xmlGainOffsetInfo = xmlBiasInfo->NextSiblingElement();
+      dqm_debug(xmlGainOffsetInfo->ValueStr());
+      TiXmlNode *gainChild = 0;
+      while (gainChild = xmlGainOffsetInfo->IterateChildren(gainChild)) {
+	std::string property = gainChild->ValueStr();
+	std::string propertyContents = gainChild->ToElement()->GetText();
+	run.setParameter(property, propertyContents);
+	dqm_debug(" {0}: {1}", gainChild->ValueStr(), gainChild->ToElement()->GetText());
+      }
+
+      TiXmlElement *xmlThreshold = xmlGainOffsetInfo->NextSiblingElement();
+      dqm_debug(xmlThreshold->ValueStr());
+      TiXmlNode *thresholdChild = 0;
+      while (thresholdChild = xmlThreshold->IterateChildren(thresholdChild)) {
+	std::string property = thresholdChild->ValueStr();
+	std::string propertyContents = thresholdChild->ToElement()->GetText();
+	run.setParameter(property, propertyContents);
+	dqm_debug(" {0}: {1}", thresholdChild->ValueStr(), thresholdChild->ToElement()->GetText());
+      }
 
       return STATUS_CODE_SUCCESS;
     }
@@ -190,11 +209,6 @@ namespace dqm4hep {
 	return STATUS_CODE_FAILURE;
       } 
 
-      if (eventContainer[0] > 30000) {
-	dqm_error("Over 30,000 - ending run");
-	return STATUS_CODE_FAILURE;
-      }
-
       std::vector<int> ev_eventNum = {eventContainer[0]};
       pEvent->setEventNumber(ev_eventNum[0]);
 
@@ -203,10 +217,6 @@ namespace dqm4hep {
 
       eventContainer.erase(eventContainer.begin(),eventContainer.begin()+2);
       pGenericEvent->setValues("Channels", eventContainer);
-
-      if (ev_eventNum[0]%1000 == 0) {
-	dqm_info("File reader reports:     event {0}", ev_eventNum[0]);
-      }
 
       onEventRead().emit(pEvent);
       return STATUS_CODE_SUCCESS;
