@@ -57,79 +57,7 @@ namespace dqm4hep {
       void process(core::EventPtr event) override;
       
     private:
-      std::vector<online::OnlineElementPtr> m_pSpectrum = {nullptr};
-      /*
-      online::OnlineElementPtr m_pSpectrum0 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum1 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum2 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum3 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum4 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum5 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum5 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum6 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum7 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum8 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum9 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum10 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum11 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum12 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum13 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum14 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum15 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum15 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum16 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum17 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum18 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum19 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum20 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum21 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum22 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum23 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum24 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum25 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum25 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum26 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum27 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum28 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum29 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum30 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum31 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum32 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum33 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum34 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum35 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum35 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum36 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum37 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum38 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum39 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum40 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum41 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum42 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum43 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum44 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum45 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum45 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum46 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum47 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum48 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum49 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum50 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum51 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum52 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum53 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum54 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum55 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum55 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum56 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum57 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum58 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum59 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum60 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum61 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum62 = {nullptr};
-      online::OnlineElementPtr m_pSpectrum63 = {nullptr};
-      */
+      std::vector<online::OnlineElementPtr> m_pSpectrum;
     };
     
     //-------------------------------------------------------------------------------------------------
@@ -144,7 +72,7 @@ namespace dqm4hep {
 
       for (int i=0; i<64; i++) {
 	std::string meName = "SpectrumCh" + std::to_string(i);
-	m_pSpectrum[i] = online::ModuleApi::getMonitorElement(this, "/", meName);
+	m_pSpectrum.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
       }
 
     }
@@ -188,14 +116,9 @@ namespace dqm4hep {
 	return;
       }
 
-      if (pEvent->getEventNumber()%1000 == 0) {
-	dqm_info("Analysis module reports: event {0}",pEvent->getEventNumber());
-      }
-
       std::vector<float> eventChannels;
       core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
       pGenericEvent->getValues("Channels", eventChannels);
-      
 
       for (int i=0; i<64; i++) {
 	m_pSpectrum[i]->objectTo<TH1>()->Fill(eventChannels[i]);
