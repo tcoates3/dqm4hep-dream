@@ -16,7 +16,7 @@
   
   <!-- Archiver settings -->
   <archiver enable="true">
-    <parameter name="FileName" value="Archive.root"/>
+    <parameter name="FileName" value="ArchiveHitmap.root"/>
     <parameter name="OpenMode" value="RECREATE"/>
     <parameter name="AllowOverwrite" value="true"/>
     <parameter name="AppendRunNumber" value="false"/>
@@ -32,7 +32,7 @@
   <storage>
     <style theme="polar"/>
     <monitorElements>
-      <bookElement type="TH2I" path="/" name="Hitmap" title="A hitmap of the SiPM" nBinsX="8" minX="0" maxX="8" nBinsY="8" minY="0" maxY="8">
+      <bookElement type="TH2I" path="/" name="Hitmap" title="A hitmap of the SiPM" nBinsX="8" minX="0" maxX="8" nBinsY="8" minY="0" maxY="8" drawOption="colz">
       </bookElement>
     </monitorElements>
   </storage>

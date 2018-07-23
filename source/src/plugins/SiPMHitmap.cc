@@ -113,10 +113,6 @@ namespace dqm4hep {
 	return;
       }
 
-      if (pEvent->getEventNumber()%1000 == 0) {
-	dqm_info("Analysis module reports: event {0}",pEvent->getEventNumber());
-      }
-
       std::vector<float> eventChannels;
       core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
       pGenericEvent->getValues("Channels", eventChannels);
