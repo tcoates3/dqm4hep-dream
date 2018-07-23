@@ -115,9 +115,14 @@ namespace dqm4hep {
     StatusCode RD52FileReader::skipNEvents(int nEvents) {
 
       for (int e=0; e<nEvents; e++) {
-	//
-	// ...
-	//
+	EventHeader myEventHeader;
+	fread(&myEventHeader, sizeof(myEventHeader), 1, inputFile);
+	SubEventHeader mySubEventHeader; 
+	fread(&mySubEventHeader, sizeof(mySubEventHeader), 1, inputFile);
+	int32_t eventDataSize = myEventHeader.eventSize - myEventHeader.eventHeaderSize;
+	uint32_t* myEventContainer = new uint32_t[eventDataSize];
+	fread(myEventContainer, sizeof(uint32_t), eventDataSize, inputFile);
+	delete[] myEventContainer;
       }
 
       return STATUS_CODE_SUCCESS;
