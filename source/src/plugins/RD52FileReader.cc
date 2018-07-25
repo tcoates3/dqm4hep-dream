@@ -85,7 +85,8 @@ namespace dqm4hep {
       } SubEventHeader;
 
     protected:
-      std::fstream inputFile;
+      FILE* inputFile = 0;
+      //std::fstream inputFile;
 
     };
     
@@ -101,11 +102,6 @@ namespace dqm4hep {
     StatusCode RD52FileReader::open(const std::string &fname) {
       
       inputFile = fopen(fname.c_str(), "r");
-
-      if (!inputFile.is_open()) {
-	dqm_error("Failed to open the file at {0}", fname);
-	return STATUS_CODE_FAILURE;
-      }
 
       return STATUS_CODE_SUCCESS;
     }
@@ -135,9 +131,9 @@ namespace dqm4hep {
       RunHeader myRunHeader;
       fread(&myRunHeader, sizeof(RunHeader), 1, inputFile);
 
-      run.runNumber(myRunHeader.runNumber);
-      run.setStartTime(myRunHeader.startTime);
-      run.setEndTime(core::time::asPoint(myRunHeader.endTime));
+      run.setRunNumber(myRunHeader.runNumber);
+      run.setStartTime(core::time::asPoint(myRunHeader.startTime)); //ambiguous 
+      run.setEndTime(core::time::asPoint(myRunHeader.endTime)); //ambiguous 
       run.setParameter("Number of events", myRunHeader.numberOfEvents);
       run.setParameter("Magic word", myRunHeader.magicWord);
 
@@ -151,7 +147,7 @@ namespace dqm4hep {
       GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
 
       //
-      // some error checking
+      // some error checking...?
       //
 
       EventHeader myEventHeader;
@@ -160,19 +156,38 @@ namespace dqm4hep {
       SubEventHeader mySubEventHeader; 
       fread(&mySubEventHeader, sizeof(mySubEventHeader), 1, inputFile);
 
+      int32_t eventDataSize = myEventHeader.eventSize-myEventHeader.eventHeaderSize;
+      uint32_t* myEventContainer = new uint32_t[eventDataSize];
+      int k = fread(myEventContainer, sizeof(uint32_t), eventDataSize, inputFile);
+ 
       //
-      // some event reading
+      // Make some vectors here to store the data, before adding to the GenericEvent
       //
 
+      for (int i = 0; i < eventDataSize; i++) {
+	int loopDataType = (myEventContainer[i] >> 24) & 0x7;
+	int loopDataValue = (myEventContainer[i] & 0xFFF);
+	int loopDataChannel = (myEventContainer[i] >> 17) & 0xF;
+	//
+	// Some if statements for sorting the data types, and pushing them into the correct vectors
+	//
+      }
+      
+      pEvent->setEventNumber(myEventHeader.eventNumber);
+      pEvent->setTimeStamp(core::time::asPoint(myEventHeader.tsec)); // ambiguous
+
+      // How many of these we need depends on how much information is in there
+      //pGenericEvent->setValues(/**/);
+
       onEventRead().emit(pEvent);
+      delete[] myEventContainer;
       return STATUS_CODE_SUCCESS;
     }
 
     StatusCode RD52FileReader::close() {
       
-      // closing
-
       fclose(inputFile);
+
       return STATUS_CODE_SUCCESS;
     }
 
