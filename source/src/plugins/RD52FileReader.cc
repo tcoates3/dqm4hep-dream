@@ -86,7 +86,6 @@ namespace dqm4hep {
 
     protected:
       FILE* inputFile = 0;
-      //std::fstream inputFile;
 
     };
     
@@ -132,8 +131,8 @@ namespace dqm4hep {
       fread(&myRunHeader, sizeof(RunHeader), 1, inputFile);
 
       run.setRunNumber(myRunHeader.runNumber);
-      run.setStartTime(core::time::asPoint(myRunHeader.startTime)); //ambiguous 
-      run.setEndTime(core::time::asPoint(myRunHeader.endTime)); //ambiguous 
+      //run.setStartTime(core::time::asPoint(myRunHeader.startTime)); //ambiguous 
+      //run.setEndTime(core::time::asPoint(myRunHeader.endTime)); //ambiguous 
       run.setParameter("Number of events", myRunHeader.numberOfEvents);
       run.setParameter("Magic word", myRunHeader.magicWord);
 
@@ -146,10 +145,6 @@ namespace dqm4hep {
       EventPtr pEvent = GenericEvent::make_shared();
       GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
 
-      //
-      // some error checking...?
-      //
-
       EventHeader myEventHeader;
       fread(&myEventHeader, sizeof(myEventHeader), 1, inputFile);
 
@@ -160,24 +155,22 @@ namespace dqm4hep {
       uint32_t* myEventContainer = new uint32_t[eventDataSize];
       int k = fread(myEventContainer, sizeof(uint32_t), eventDataSize, inputFile);
  
-      //
-      // Make some vectors here to store the data, before adding to the GenericEvent
-      //
+      std::vector<int> dataXDC;
+      std::vector<int> channelNum;
 
       for (int i = 0; i < eventDataSize; i++) {
-	int loopDataType = (myEventContainer[i] >> 24) & 0x7;
-	int loopDataValue = (myEventContainer[i] & 0xFFF);
-	int loopDataChannel = (myEventContainer[i] >> 17) & 0xF;
-	//
-	// Some if statements for sorting the data types, and pushing them into the correct vectors
-	//
+	if ( ((myEventContainer[i] >> 24) & 0x7) != 0) {
+	  continue;
+	}
+	dataXDC.push_back(myEventContainer[i] & 0xFFF);
+	channelNum.push_back((myEventContainer[i] >> 17) & 0xF);
       }
       
       pEvent->setEventNumber(myEventHeader.eventNumber);
-      pEvent->setTimeStamp(core::time::asPoint(myEventHeader.tsec)); // ambiguous
+      //pEvent->setTimeStamp(core::time::asPoint(myEventHeader.tsec)); // ambiguous
 
-      // How many of these we need depends on how much information is in there
-      //pGenericEvent->setValues(/**/);
+      pGenericEvent->setValues("ChannelNumber", channelNum);
+      pGenericEvent->setValues("dataXDC", dataXDC);
 
       onEventRead().emit(pEvent);
       delete[] myEventContainer;
