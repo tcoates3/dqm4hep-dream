@@ -69,7 +69,7 @@ namespace dqm4hep {
 
       typedef struct {
 	uint32_t eventMarker;      // Beginning of event marker - 0xcafecafe
-	uint32_t eventHeaderSize;  // In bytes
+	uint32_t headerSize;       // In bytes
 	uint32_t eventSize;        // In bytes (including header)
 	uint32_t eventNumber;
 	uint32_t spillNumber;
@@ -78,14 +78,19 @@ namespace dqm4hep {
       } EventHeader;
 
       typedef struct {
-	uint32_t beginMarker;      // Beginning of subevent marker - 0xacabacab
+	uint32_t subeventMarker;   // Beginning of subevent marker - 0xacabacab
 	uint32_t headerSize;       // In bytes
 	uint32_t moduleID;
 	uint32_t subeventSize;
-      } SubEventHeader;
+      } SubeventHeader;
 
     protected:
       FILE* inputFile = 0;
+      int eventCounter = 0;
+
+    private:
+      uint32_t hexEventMarker = 0xCAFECAFE;
+      uint32_t hexSubeventMarker = 0xACABACAB;
 
     };
     
@@ -112,9 +117,7 @@ namespace dqm4hep {
       for (int e=0; e<nEvents; e++) {
 	EventHeader myEventHeader;
 	fread(&myEventHeader, sizeof(myEventHeader), 1, inputFile);
-	SubEventHeader mySubEventHeader; 
-	fread(&mySubEventHeader, sizeof(mySubEventHeader), 1, inputFile);
-	int32_t eventDataSize = myEventHeader.eventSize - myEventHeader.eventHeaderSize;
+	int32_t eventDataSize = (myEventHeader.eventSize/4) - (myEventHeader.headerSize/4);
 	uint32_t* myEventContainer = new uint32_t[eventDataSize];
 	fread(myEventContainer, sizeof(uint32_t), eventDataSize, inputFile);
 	delete[] myEventContainer;
@@ -131,8 +134,8 @@ namespace dqm4hep {
       fread(&myRunHeader, sizeof(RunHeader), 1, inputFile);
 
       run.setRunNumber(myRunHeader.runNumber);
-      //run.setStartTime(core::time::asPoint(myRunHeader.startTime)); //ambiguous 
-      //run.setEndTime(core::time::asPoint(myRunHeader.endTime)); //ambiguous 
+      //run.setStartTime(core::time::asPoint(myRunHeader.startTime)); // Compiler says "ambiguous"
+      //run.setEndTime(core::time::asPoint(myRunHeader.endTime)); // Compiler says "ambiguous" 
       run.setParameter("Number of events", myRunHeader.numberOfEvents);
       run.setParameter("Magic word", myRunHeader.magicWord);
 
@@ -146,39 +149,59 @@ namespace dqm4hep {
       GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
 
       EventHeader myEventHeader;
-      fread(&myEventHeader, sizeof(myEventHeader), 1, inputFile);
+      fread(&myEventHeader, sizeof(EventHeader), 1, inputFile);
 
-      SubEventHeader mySubEventHeader; 
-      fread(&mySubEventHeader, sizeof(mySubEventHeader), 1, inputFile);
+      if (myEventHeader.eventMarker != hexEventMarker) {
+	dqm_error("Could not locate the correct event marker. Event marker was: {0}",myEventHeader.eventMarker);
+	return STATUS_CODE_FAILURE;
+      }
 
-      int32_t eventDataSize = myEventHeader.eventSize-myEventHeader.eventHeaderSize;
-      uint32_t* myEventContainer = new uint32_t[eventDataSize];
-      int k = fread(myEventContainer, sizeof(uint32_t), eventDataSize, inputFile);
+      /*
+      SubeventHeader mySubeventHeader; 
+      fread(&mySubeventHeader, sizeof(SubeventHeader), 1, inputFile);
+
+      if (mySubeventHeader.subeventMarker != hexSubeventMarker) {
+	dqm_error("Could not locate the correct subevent marker");
+	return STATUS_CODE_FAILURE;
+      }
+      */
+
+      int32_t eventDataSize = (myEventHeader.eventSize/4)-(myEventHeader.headerSize/4);
+      uint32_t* myEventContainer = new uint32_t[eventDataSize]; // Throws std::bad_array_new_length
+      fread(myEventContainer, sizeof(uint32_t), eventDataSize, inputFile);
  
       std::vector<int> dataXDC;
       std::vector<int> channelNum;
 
       for (int i = 0; i < eventDataSize; i++) {
+	/*dqm_warning("Type: {0}", ((myEventContainer[i] >> 24) & 0x7));
+	dqm_warning("Value: {0}", (myEventContainer[i] & 0xFFF));
+	dqm_warning("Channel: {0}", ((myEventContainer[i] >> 17) & 0xF));*/
 	if ( ((myEventContainer[i] >> 24) & 0x7) != 0) {
 	  continue;
 	}
 	dataXDC.push_back(myEventContainer[i] & 0xFFF);
 	channelNum.push_back((myEventContainer[i] >> 17) & 0xF);
       }
-      
+
       pEvent->setEventNumber(myEventHeader.eventNumber);
-      //pEvent->setTimeStamp(core::time::asPoint(myEventHeader.tsec)); // ambiguous
+      //pEvent->setTimeStamp(core::time::asPoint(myEventHeader.tsec)); // Compiler says "ambiguous"
 
       pGenericEvent->setValues("ChannelNumber", channelNum);
       pGenericEvent->setValues("dataXDC", dataXDC);
 
       onEventRead().emit(pEvent);
       delete[] myEventContainer;
+      /*if (eventCounter%100 == 0) {
+	dqm_info("Event counter: {0}", eventCounter);
+	}*/
+      eventCounter++;
       return STATUS_CODE_SUCCESS;
     }
 
     StatusCode RD52FileReader::close() {
       
+      dqm_debug("Events processed: {0}", eventCounter);
       fclose(inputFile);
 
       return STATUS_CODE_SUCCESS;
