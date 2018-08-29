@@ -151,7 +151,7 @@ namespace dqm4hep {
       fread(&myEventHeader, sizeof(EventHeader), 1, inputFile);
 
       if (myEventHeader.eventMarker != hexEventMarker) {
-	dqm_error("Could not locate the correct event marker. Event marker was: {0}",myEventHeader.eventMarker);
+	dqm_error("Could not locate the correct event marker. The read event marker was: {0}",myEventHeader.eventMarker);
 	return STATUS_CODE_FAILURE;
       }
 
@@ -173,27 +173,36 @@ namespace dqm4hep {
 
  	memcpy(&mySubeventHeader, &myEventContainer[0], sizeof(mySubeventHeader));
 	if (mySubeventHeader.subeventMarker != hexSubeventMarker) {
-	  dqm_error("Could not locate the correct subevent marker. Subevent marker was: {0}",mySubeventHeader.subeventMarker);
+	  dqm_error("Could not locate the correct subevent marker. The read subevent marker was: {0}",mySubeventHeader.subeventMarker);
 	  return STATUS_CODE_FAILURE;
 	}
 	
 	if ( ((myEventContainer[subeventLoopCounter] >> 24) & 0x7) == 0) {
-	  
-	  //Categorise the type here, with bools:
 	  bool isV775 = false;
 	  bool isV792AC = false;
 	  bool isV862 = false;
 	  
+	  //
+	  // So now we need to know what the different module IDs are
+	  // Options so far in dec: 134217764, 50331685
+	  // Options so far in hex: 0x8000024, 0x3000025
+	  // Although the DreamDaq says "MARKER_V775" should be 0x20000024
+	  //
+
 	  if (mySubeventHeader.moduleID == x) {
 	    isV775 = true;
 	  }
 	  if (mySubeventHeader.moduleID == x) {
-	    isV792AC = false;
+	    isV792AC = true;
 	  }
 	  if (mySubeventHeader.moduleID == x) {
-	    isV862 = false;
+	    isV862 = true;
 	  }
 
+	  if (!isV775 and !isV792AC and !isV682) {
+	    dqm_error("The Module ID could not be classified. The read module Id was: {0}", mySubeventHeader.moduleID);
+	    return STATUS_CODE_FAILURE;
+	  }
 	  if (isV775) {
 	    valueType = "TDC";
 	    bool tdcValidity = ((myEventContainer[subeventLoopCounter] >> 14) & 0x1)
@@ -202,18 +211,10 @@ namespace dqm4hep {
 	  }
 	  if (isV7982AC or isV862) {
 	    valueType = "ADCN";
+	    //adcValidity ?
 	    dataValue.push_back(myEventContainer[subeventLoopCounter] & 0xFFF);
 	    dataChannel.push_back((myEventContainer[subeventLoopCounter] >> 16) & 0x1F);
 	  }
-
-	}
-
-	//
-	// So now we need to know what the different module IDs are
-	// Options so far in dec: 134217764, 50331685
-	// Options so far in hex: 0x8000024, 0x3000025
-	// Although the DreamDaq says "MARKER_V775" should be 0x20000024
-	//
 
 	/*
 	  Global [?]	 
@@ -230,7 +231,7 @@ namespace dqm4hep {
 	  DecodeV862
 	    (same as V792AC)
 	*/
-
+	}
 	subeventLoopCounter += mySubeventHeader.subeventSize/4;
       }
 
