@@ -86,7 +86,6 @@ namespace dqm4hep {
 
     protected:
       FILE* inputFile = 0;
-      int eventCounter = 0;
 
     private:
       uint32_t hexEventMarker = 0xCAFECAFE;
@@ -117,7 +116,7 @@ namespace dqm4hep {
       for (int e=0; e<nEvents; e++) {
 	EventHeader myEventHeader;
 	fread(&myEventHeader, sizeof(myEventHeader), 1, inputFile);
-	int32_t eventDataSize = (myEventHeader.eventSize/4) - (myEventHeader.headerSize/4);
+	int32_t eventDataSize = (myEventHeader.eventSize-myEventHeader.headerSize)/4;
 	uint32_t* myEventContainer = new uint32_t[eventDataSize];
 	fread(myEventContainer, sizeof(uint32_t), eventDataSize, inputFile);
 	delete[] myEventContainer;
@@ -156,52 +155,98 @@ namespace dqm4hep {
 	return STATUS_CODE_FAILURE;
       }
 
-      /*
-      SubeventHeader mySubeventHeader; 
-      fread(&mySubeventHeader, sizeof(SubeventHeader), 1, inputFile);
-
-      if (mySubeventHeader.subeventMarker != hexSubeventMarker) {
-	dqm_error("Could not locate the correct subevent marker");
-	return STATUS_CODE_FAILURE;
-      }
-      */
-
-      int32_t eventDataSize = (myEventHeader.eventSize/4)-(myEventHeader.headerSize/4);
-      uint32_t* myEventContainer = new uint32_t[eventDataSize]; // Throws std::bad_array_new_length
+      int32_t eventDataSize = (myEventHeader.eventSize-myEventHeader.headerSize)/4;
+      uint32_t* myEventContainer = new uint32_t[eventDataSize];
       fread(myEventContainer, sizeof(uint32_t), eventDataSize, inputFile);
  
-      std::vector<int> dataXDC;
-      std::vector<int> channelNum;
+      SubeventHeader mySubeventHeader;
+      uint32_t subeventLoopCounter = 0;
 
-      for (int i = 0; i < eventDataSize; i++) {
-	/*dqm_warning("Type: {0}", ((myEventContainer[i] >> 24) & 0x7));
-	dqm_warning("Value: {0}", (myEventContainer[i] & 0xFFF));
-	dqm_warning("Channel: {0}", ((myEventContainer[i] >> 17) & 0xF));*/
-	if ( ((myEventContainer[i] >> 24) & 0x7) != 0) {
-	  continue;
+      std::string valueType;
+      std::vector<int> dataValue;
+      std::vector<int> dataChannel;
+
+      while (true) {
+	if (subeventLoopCounter > eventDataSize) {
+	  break;
 	}
-	dataXDC.push_back(myEventContainer[i] & 0xFFF);
-	channelNum.push_back((myEventContainer[i] >> 17) & 0xF);
+
+ 	memcpy(&mySubeventHeader, &myEventContainer[0], sizeof(mySubeventHeader));
+	if (mySubeventHeader.subeventMarker != hexSubeventMarker) {
+	  dqm_error("Could not locate the correct subevent marker. Subevent marker was: {0}",mySubeventHeader.subeventMarker);
+	  return STATUS_CODE_FAILURE;
+	}
+	
+	if ( ((myEventContainer[subeventLoopCounter] >> 24) & 0x7) == 0) {
+	  
+	  //Categorise the type here, with bools:
+	  bool isV775 = false;
+	  bool isV792AC = false;
+	  bool isV862 = false;
+	  
+	  if (mySubeventHeader.moduleID == x) {
+	    isV775 = true;
+	  }
+	  if (mySubeventHeader.moduleID == x) {
+	    isV792AC = false;
+	  }
+	  if (mySubeventHeader.moduleID == x) {
+	    isV862 = false;
+	  }
+
+	  if (isV775) {
+	    valueType = "TDC";
+	    bool tdcValidity = ((myEventContainer[subeventLoopCounter] >> 14) & 0x1)
+	    dataValue.push_back(myEventContainer[subeventLoopCounter] & 0xFFF);
+	    dataChannel.push_back((myEventContainer[subeventLoopCounter] >> 17) & 0xF);	   
+	  }
+	  if (isV7982AC or isV862) {
+	    valueType = "ADCN";
+	    dataValue.push_back(myEventContainer[subeventLoopCounter] & 0xFFF);
+	    dataChannel.push_back((myEventContainer[subeventLoopCounter] >> 16) & 0x1F);
+	  }
+
+	}
+
+	//
+	// So now we need to know what the different module IDs are
+	// Options so far in dec: 134217764, 50331685
+	// Options so far in hex: 0x8000024, 0x3000025
+	// Although the DreamDaq says "MARKER_V775" should be 0x20000024
+	//
+
+	/*
+	  Global [?]	 
+	    [Type]			= (buf[i] >> 24) & 0x7	  
+	  DecodeV775 (TDC)
+	    data			= (buf[i] & 0xFFF)
+	    channel			= (buf[i] >> 17) 0xF
+	    valid			= (buf[i] >> 14) & 0x1 
+	  DecodeV792AC (ADCN)
+	    data			= (buf[i] & 0xFFF);
+	    channel			= (buf[i] >> 16) & 0x1F;
+	    ov				= (buf[i] >> 12) & 0x1;
+	    un				= (buf[i] >> 13) & 0x1;	 
+	  DecodeV862
+	    (same as V792AC)
+	*/
+
+	subeventLoopCounter += mySubeventHeader.subeventSize/4;
       }
 
       pEvent->setEventNumber(myEventHeader.eventNumber);
       //pEvent->setTimeStamp(core::time::asPoint(myEventHeader.tsec)); // Compiler says "ambiguous"
 
-      pGenericEvent->setValues("ChannelNumber", channelNum);
-      pGenericEvent->setValues("dataXDC", dataXDC);
+      pGenericEvent->setValues(valueType, dataValue);
+      pGenericEvent->setValues("Channels", dataChannel);
 
       onEventRead().emit(pEvent);
       delete[] myEventContainer;
-      /*if (eventCounter%100 == 0) {
-	dqm_info("Event counter: {0}", eventCounter);
-	}*/
-      eventCounter++;
       return STATUS_CODE_SUCCESS;
     }
 
     StatusCode RD52FileReader::close() {
       
-      dqm_debug("Events processed: {0}", eventCounter);
       fclose(inputFile);
 
       return STATUS_CODE_SUCCESS;
