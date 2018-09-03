@@ -195,13 +195,13 @@ namespace dqm4hep {
 	  // Although the DreamDaq says "MARKER_V775" should be 0x20000024
 	  //
 
-	  if (mySubeventHeader.moduleID == x) { //Placeholder
+	  if (mySubeventHeader.moduleID == 0x8000024) { //Placeholder
 	    isV775 = true;
 	  }
-	  if (mySubeventHeader.moduleID == x) { //Placeholder
+	  if (mySubeventHeader.moduleID == 0x3000025) { //Placeholder
 	    isV792AC = true;
 	  }
-	  if (mySubeventHeader.moduleID == x) { //Placeholder
+	  if (mySubeventHeader.moduleID == 0x3000025) { //Placeholder
 	    isV862 = true;
 	  }
 
