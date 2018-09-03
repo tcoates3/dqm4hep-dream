@@ -106,10 +106,34 @@ namespace dqm4hep {
 
     void RD52DummyModule::process(core::EventPtr pEvent) {
 
+      if (nullptr == pEvent) {
+	dqm_warning("Event pointer is invalid - skipping this event");
+	return;
+      }
+
+      std::vector<std::string> eventType;
+      std::vector<int> eventChannels;
+      std::vector<int> eventADC;
+      std::vector<int> eventTDC;
+
+      core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
+      pGenericEvent->getValues("EventType", eventType);
+      pGenericEvent->getValues("Channels", eventChannels);
+
+      if (eventType[0] == "ADC") {
+	pGenericEvent->getValues("ADCN", eventADC);
+	// Other ADC processing here...
+      }
+      if (eventType[0] == "TDC") {
+	pGenericEvent->getValues("TDC", eventTDC);
+	// Other TDC processing here...
+      }
+
     }
     
     DQM_PLUGIN_DECL(RD52DummyModule, "RD52DummyModule");
     
   }
   
+
 }
