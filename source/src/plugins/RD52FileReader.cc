@@ -166,6 +166,12 @@ namespace dqm4hep {
       std::vector<int> dataValue;
       std::vector<int> dataChannel;
 
+      bool isV775 = false;
+      bool isV792AC = false;
+      bool isV862 = false;
+      bool isADC = false;
+      bool isTDC = false;
+
       while (true) {
 	if (subeventLoopCounter > eventDataSize) {
 	  break;
@@ -177,11 +183,11 @@ namespace dqm4hep {
 	  return STATUS_CODE_FAILURE;
 	}
 	
+	// We should also check the validity bit here (bit 14) but previously the validity bit was always 0. Wonder if this is a feature of the module? 
+	// We also need to decode the trigger number, but the process for this in the original code is arcane and makes no sense.
+
 	if ( ((myEventContainer[subeventLoopCounter] >> 24) & 0x7) == 0) {
-	  bool isV775 = false;
-	  bool isV792AC = false;
-	  bool isV862 = false;
-	  
+
 	  //
 	  // So now we need to know what the different module IDs are
 	  // Options so far in dec: 134217764, 50331685
@@ -189,28 +195,28 @@ namespace dqm4hep {
 	  // Although the DreamDaq says "MARKER_V775" should be 0x20000024
 	  //
 
-	  if (mySubeventHeader.moduleID == x) {
+	  if (mySubeventHeader.moduleID == x) { //Placeholder
 	    isV775 = true;
 	  }
-	  if (mySubeventHeader.moduleID == x) {
+	  if (mySubeventHeader.moduleID == x) { //Placeholder
 	    isV792AC = true;
 	  }
-	  if (mySubeventHeader.moduleID == x) {
+	  if (mySubeventHeader.moduleID == x) { //Placeholder
 	    isV862 = true;
 	  }
 
-	  if (!isV775 and !isV792AC and !isV682) {
+	  if (!isV775 and !isV792AC and !isV862) {
 	    dqm_error("The Module ID could not be classified. The read module Id was: {0}", mySubeventHeader.moduleID);
 	    return STATUS_CODE_FAILURE;
 	  }
 	  if (isV775) {
-	    valueType = "TDC";
-	    bool tdcValidity = ((myEventContainer[subeventLoopCounter] >> 14) & 0x1)
+	    isTDC = true;
+	    bool tdcValidity = ((myEventContainer[subeventLoopCounter] >> 14) & 0x1);
 	    dataValue.push_back(myEventContainer[subeventLoopCounter] & 0xFFF);
 	    dataChannel.push_back((myEventContainer[subeventLoopCounter] >> 17) & 0xF);	   
 	  }
-	  if (isV7982AC or isV862) {
-	    valueType = "ADCN";
+	  if (isV792AC or isV862) {
+	    isADC = true;
 	    //adcValidity ?
 	    dataValue.push_back(myEventContainer[subeventLoopCounter] & 0xFFF);
 	    dataChannel.push_back((myEventContainer[subeventLoopCounter] >> 16) & 0x1F);
@@ -237,6 +243,19 @@ namespace dqm4hep {
 
       pEvent->setEventNumber(myEventHeader.eventNumber);
       //pEvent->setTimeStamp(core::time::asPoint(myEventHeader.tsec)); // Compiler says "ambiguous"
+
+
+      if (isADC) {
+	pGenericEvent->setValues("EventType", "ADC");
+	pGenericEvent->setValues("ADC", dataValue);
+      }
+      if (isTDC) {
+	pGenericEvent->setValues("EventType", "TDC");
+	pGenericEvent->setValues("TDC", dataValue);
+      }
+      if (!isADC and !isTDC) {
+	
+      }
 
       pGenericEvent->setValues(valueType, dataValue);
       pGenericEvent->setValues("Channels", dataChannel);
