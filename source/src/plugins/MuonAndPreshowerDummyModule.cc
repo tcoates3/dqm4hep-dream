@@ -29,9 +29,13 @@
 // -- dqm4hep headers
 #include <dqm4hep/Internal.h>
 #include <dqm4hep/StatusCodes.h>
+#include <dqm4hep/GenericEvent.h>
 #include <dqm4hep/RootHeaders.h>
 #include <dqm4hep/Module.h>
 #include "dqm4hep/PluginManager.h"
+#include <dqm4hep/OnlineElement.h>
+#include "dqm4hep/ModuleApi.h"
+
 
 namespace dqm4hep {
 
@@ -101,7 +105,18 @@ namespace dqm4hep {
     
     //-------------------------------------------------------------------------------------------------
 
-    void MuonAndPreshowerDummyModule::process(core::EventPtr /*event*/) {
+    void MuonAndPreshowerDummyModule::process(core::EventPtr pEvent) {
+
+      if(nullptr == pEvent) {
+        dqm_warning("Event pointer is invalid - skipping this event");
+        return;
+      }
+      
+      std::vector<int> nGemHits;
+      core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
+      pGenericEvent->getValues("nGemHit", nGemHits);
+
+      dqm_warning("Number of GEM hits: {0}", nGemHits[0]);
 
     }
     
