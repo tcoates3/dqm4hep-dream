@@ -71,6 +71,12 @@ namespace dqm4hep {
 
     StatusCode MuonAndPreshowerFileReader::open(const std::string &fname) {
       
+      // rootFile is assumed to be the handle for the rootfile itself
+      // nEntries has to be declared in the header, since it's used outside of this function
+      nEntries = rootFile->t1->GetEntries();
+
+      auto hits = rootFile->t1->GetBranch("nGemHit");
+
       return STATUS_CODE_SUCCESS;
     }
 
@@ -91,6 +97,17 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode MuonAndPreshowerFileReader::readNextEvent() {
+
+      for (int i=0; i < nEntries; i++) {
+	thisDataPoint = myTree->(i);
+	thisDataPoint = myTree->GetEvent(i);
+	// Do something with this?
+      }
+
+
+      //Getting somewhere with doing t1->GetListOfLeaves(), which returns a TObjArray.
+      //With the TObjArray we can nominate first and last objects and access their information via Dump().
+      // The important information from Dump() is fName/fTitle and ...?
 
       return STATUS_CODE_SUCCESS;
     }
