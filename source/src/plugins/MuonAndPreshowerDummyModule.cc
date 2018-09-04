@@ -105,7 +105,7 @@ namespace dqm4hep {
 
     }
     
-    DQM_PLUGIN_DECL(MuonAndPreshowerDummyModule, "DreamMuonAndPreshowerDummyModule");
+    DQM_PLUGIN_DECL(MuonAndPreshowerDummyModule, "MuonAndPreshowerDummyModule");
     
   }
   

@@ -38,6 +38,12 @@
 #include <dqm4hep/PluginManager.h>
 #include <dqm4hep/XmlHelper.h>
 
+// -- root headers
+#include "TFile.h"
+#include "TTree.h"
+#include "TBranch.h"
+#include "TLeaf.h"
+
 namespace dqm4hep {
 
   namespace core {
@@ -58,6 +64,11 @@ namespace dqm4hep {
       core::StatusCode runInfo(core::Run &run) override;
       core::StatusCode readNextEvent() override;
       core::StatusCode close() override;
+
+      int nEntries = -1;
+      int currentEventNum = -1;
+      TFile *rootFile = new TFile;
+      TTree *mainTree = new TTree;
       
     };
     
@@ -65,18 +76,25 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     MuonAndPreshowerFileReader::~MuonAndPreshowerFileReader() {
+      dqm_debug("Inside destructor");
 
     }
 
     //-------------------------------------------------------------------------------------------------
 
     StatusCode MuonAndPreshowerFileReader::open(const std::string &fname) {
+      dqm_debug("Inside open()");
       
-      // rootFile is assumed to be the handle for the rootfile itself
-      // nEntries has to be declared in the header, since it's used outside of this function
-      nEntries = rootFile->t1->GetEntries();
+      rootFile = new TFile(fname.c_str());
+      mainTree = (TTree*)rootFile->Get("t1");
 
-      auto hits = rootFile->t1->GetBranch("nGemHit");
+      nEntries = mainTree->GetEntries();
+      if (nEntries == -1) {
+	dqm_error("Could not determine the number of events in file {0}", fname);
+	return STATUS_CODE_FAILURE;
+      }
+      currentEventNum = 0;
+      mainTree->GetEvent(0);
 
       return STATUS_CODE_SUCCESS;
     }
@@ -84,6 +102,9 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode MuonAndPreshowerFileReader::skipNEvents(int nEvents) {
+      dqm_debug("Inside skipNEvents()");
+
+      currentEventNum += nEvents;
 
       return STATUS_CODE_SUCCESS;
     }
@@ -91,6 +112,7 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode MuonAndPreshowerFileReader::runInfo(core::Run &run) {
+      dqm_debug("Inside runInfo()");
 
       return STATUS_CODE_SUCCESS;
     }
@@ -98,23 +120,66 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode MuonAndPreshowerFileReader::readNextEvent() {
+      dqm_debug("Inside readNextEvent()");
 
-      for (int i=0; i < nEntries; i++) {
-	thisDataPoint = myTree->(i);
-	thisDataPoint = myTree->GetEvent(i);
-	// Do something with this?
+      if (currentEventNum == nEntries-1) {
+	dqm_info("Reached end of file");
+	return STATUS_CODE_OUT_OF_RANGE;
       }
 
+      EventPtr pEvent = GenericEvent::make_shared();
+      GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
 
-      //Getting somewhere with doing t1->GetListOfLeaves(), which returns a TObjArray.
-      //With the TObjArray we can nominate first and last objects and access their information via Dump().
-      // The important information from Dump() is fName/fTitle and ...?
+      // Seeking to the correct event
+      mainTree->GetEvent(currentEventNum);
+      if (mainTree->GetBranch("Event")->GetLeaf("Event")->GetValue() != currentEventNum) {
+	dqm_error("Event number mismatch");
+	return STATUS_CODE_FAILURE;
+      }
+
+      int i_eventNum = mainTree->GetBranch("Event")->GetLeaf("Event")->GetValue();
+      pEvent->setEventNumber(i_eventNum);
+
+      int i_triggerTime = mainTree->GetBranch("trigger_time")->GetLeaf("trigger_time")->GetValue();
+      pEvent->setTimeStamp(core::time::asPoint(i_triggerTime));
+
+      
+      std::vector<int> i_triggerOn;
+      i_triggerOn.push_back(mainTree->GetBranch("trigger_is_on")->GetLeaf("trigger_is_on")->GetValue());
+      pGenericEvent->setValues("triggerOn", i_triggerOn);
+      std::vector<int> i_triggerEvent;
+      i_triggerEvent.push_back(mainTree->GetBranch("trigger_event")->GetLeaf("trigger_event")->GetValue());
+      pGenericEvent->setValues("triggerEvent", i_triggerEvent);
+      
+
+      std::vector<int> i_nGemHitValue;
+      i_nGemHitValue.push_back(mainTree->GetBranch("nGemHit")->GetLeaf("nGemHit")->GetValue());
+      pGenericEvent->setValues("nGemHit", i_nGemHitValue);
+      
+      std::vector<int> i_GemHit_nHit;
+      i_GemHit_nHit.push_back(mainTree->GetBranch("GemHit_nHit")->GetLeaf("GemHit_nHit")->GetValue());
+      pGenericEvent->setValues("GemHit_nHit", i_GemHit_nHit);
+
+      std::vector<int> i_nGemCluster;
+      i_nGemCluster.push_back(mainTree->GetBranch("nGemCluster")->GetLeaf("nGemCluster")->GetValue());
+      pGenericEvent->setValues("nGemCluster", i_nGemCluster);
+      
+      /*
+      std::vector<int> i_var;
+      i_var = mainTree->GetBranch("var")->GetLeaf("var")->GetValue();
+      pGenericEvent->setValues("var", i_var);
+      */
+
+      onEventRead().emit(pEvent);
+      currentEventNum++;
 
       return STATUS_CODE_SUCCESS;
     }
+  
 
     StatusCode MuonAndPreshowerFileReader::close() {
-      
+      dqm_debug("Inside close()");
+     
       return STATUS_CODE_SUCCESS;
     }
 
