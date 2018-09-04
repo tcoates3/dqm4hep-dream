@@ -1,0 +1,40 @@
+<dqm4hep>
+  
+  <!-- Application settings -->
+  <settings mode="EventReader">
+    <parameter name="EnableStatistics"> true </parameter>
+    <parameter name="EventReader"> MuonAndPreshowerFileReader </parameter>
+    <parameter name="EventFileName">/home/dreamtest/monitoring/runs/mockData/rec_run4427.root </parameter>
+    <parameter name="CyclePeriod"> 1 </parameter>
+    <parameter name="CycleCounter"> 0 </parameter>
+    <parameter name="CycleTimeout"> 0 </parameter>
+    <parameter name="RunControl"> TestRC </parameter>
+    <parameter name="EventCollector"> TestEventCollector </parameter>
+    <parameter name="EventSource"> TestSource </parameter>
+    <parameter name="MonitorElementCollector"> TestMeCollector </parameter>
+  </settings>
+  
+  <!-- Archiver settings -->
+  <archiver enable="true">
+    <parameter name="FileName" value="muon-dream-archive.root"/>
+    <parameter name="OpenMode" value="RECREATE"/>
+    <parameter name="AllowOverwrite" value="true"/>
+    <parameter name="AppendRunNumber" value="false"/>
+    <selectors>
+      <selector regex=".*" select="true"/>
+    </selectors>    
+  </archiver>
+  
+  <!-- The analysis module goes here -->
+  <module type="MuonAndPreshowerDummyModule" name="myMuonAndPreshowerDummyModule"/>
+
+  <!-- Monitor elements in the <storage> tag -->
+  <storage>
+    <style theme="polar"/>
+    <monitorElements>
+      <bookElement type="TH2I" path="/" name="HitmapDummy" title="A dummy hitmap" nBinsX="8" minX="0" maxX="8" nBinsY="8" minY="0" maxY="8" drawOption="colz">
+      </bookElement>
+    </monitorElements>
+  </storage>
+
+</dqm4hep>
