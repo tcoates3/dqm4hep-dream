@@ -37,6 +37,12 @@
 #include <dqm4hep/PluginManager.h>
 #include <dqm4hep/XmlHelper.h>
 
+// -- root headers
+#include "TFile.h"
+#include "TTree.h"
+#include "TBranch.h"
+#include "TLeaf.h"
+
 namespace dqm4hep {
 
   namespace core {
@@ -58,6 +64,11 @@ namespace dqm4hep {
       core::StatusCode readNextEvent() override;
       core::StatusCode close() override;
       
+      int nEntries = -1;
+      int currentEventNum = -1;
+      TFile *rootFile = new TFile;
+      TTree *mainTree = new TTree;
+
     };
     
     //-------------------------------------------------------------------------------------------------
@@ -70,13 +81,27 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode DriftChamberFileReader::open(const std::string &fname) {
+      dqm_debug("Inside open()");
       
+      rootFile = new TFile(fname.c_str());
+      mainTree = (TTree*)rootFile->Get("DataTree");
+
+      nEntries = mainTree->GetEntries();
+      if (nEntries == -1) {
+	dqm_error("Could not determine the number of events in file {0}", fname);
+	return STATUS_CODE_FAILURE;
+      }
+      currentEventNum = 0;
+      mainTree->GetEvent(0);
+
       return STATUS_CODE_SUCCESS;
     }
 
     //-------------------------------------------------------------------------------------------------
 
     StatusCode DriftChamberFileReader::skipNEvents(int nEvents) {
+
+      currentEventNum += nEvents;
 
       return STATUS_CODE_SUCCESS;
     }
@@ -91,6 +116,35 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode DriftChamberFileReader::readNextEvent() {
+      dqm_debug("Inside readNextEvent()");
+
+      if (currentEventNum == nEntries) {
+	dqm_info("Reached end of file");
+	return STATUS_CODE_OUT_OF_RANGE;
+      }
+
+      EventPtr pEvent = GenericEvent::make_shared();
+      GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
+
+      // Seeking to the correct event
+      mainTree->GetEvent(currentEventNum);
+
+      if ( (mainTree->GetBranch("event")->FindLeaf("event")->GetValue()-1) != currentEventNum) {
+	dqm_error("Event number mismatch");
+	return STATUS_CODE_FAILURE;
+      }
+      
+      dqm_debug("File reader event number: {0}", currentEventNum);
+      dqm_debug("ROOT file event number:   {0}", mainTree->GetBranch("event")->FindLeaf("event")->GetValue());
+
+      //
+      // ...
+      // ... Extracting information goes here
+      // ...
+      //
+
+      onEventRead().emit(pEvent);
+      currentEventNum++;
 
       return STATUS_CODE_SUCCESS;
     }
