@@ -105,7 +105,7 @@ namespace dqm4hep {
 
     }
     
-    DQM_PLUGIN_DECL(ExampleModule, "DreamExampleModule");
+    DQM_PLUGIN_DECL(ExampleModule, "ExampleModule");
     
   }
   
