@@ -298,7 +298,7 @@ namespace dqm4hep {
       i_GemHit_lin_nHit.push_back(mainTree->GetBranch("GemHit_lin_nHit")->GetLeaf("GemHit_lin_nHit")->GetValue());
       pGenericEvent->setValues("GemHit_lin_nHit", i_GemHit_lin_nHit);
 
-      std::vector<int> i_GemHit_linear_fit; // bool
+      std::vector<int> i_GemHit_linear_fit; // Should be a boolean, but no booleans are allowed in GenericEvents
       i_GemHit_linear_fit.push_back(mainTree->GetBranch("GemHit_linear_fit")->GetLeaf("GemHit_linear_fit")->GetValue());
       pGenericEvent->setValues("GemHit_linear_fit", i_GemHit_linear_fit);
 
@@ -310,11 +310,11 @@ namespace dqm4hep {
       d_GemHit_deltaZ.push_back(mainTree->GetBranch("GemHit_deltaZ")->GetLeaf("GemHit_deltaZ")->GetValue());
       pGenericEvent->setValues("GemHit_deltaZ", d_GemHit_deltaZ);
 
-      std::vector<int> i_GemHit_is_tpc; // bool
+      std::vector<int> i_GemHit_is_tpc; // Should be a boolean, but no booleans are allowed in GenericEvents
       i_GemHit_is_tpc.push_back(mainTree->GetBranch("GemHit_is_tpc")->GetLeaf("GemHit_is_tpc")->GetValue());
       pGenericEvent->setValues("GemHit_is_tpc", i_GemHit_is_tpc);
 
-      std::vector<int> i_GemHit_utpc_goodHit; // bool
+      std::vector<int> i_GemHit_utpc_goodHit; // Should be a boolean, but no booleans are allowed in GenericEvents
       i_GemHit_utpc_goodHit.push_back(mainTree->GetBranch("GemHit_utpc_goodHit")->GetLeaf("GemHit_utpc_goodHit")->GetValue());
       pGenericEvent->setValues("GemHit_utpc_goodHit", i_GemHit_utpc_goodHit);
 
@@ -482,7 +482,7 @@ namespace dqm4hep {
       i_GemCluster1d_nHit_tpc.push_back(mainTree->GetBranch("GemCluster1d_nHit_tpc")->GetLeaf("GemCluster1d_nHit_tpc")->GetValue());
       pGenericEvent->setValues("GemCluster1d_nHit_tpc", i_GemCluster1d_nHit_tpc);
 
-      std::vector<int> i_GemCluster1d_is_tpc; // bool
+      std::vector<int> i_GemCluster1d_is_tpc; // Should be a boolean, but no booleans are allowed in GenericEvents
       i_GemCluster1d_is_tpc.push_back(mainTree->GetBranch("GemCluster1d_is_tpc")->GetLeaf("GemCluster1d_is_tpc")->GetValue());
       pGenericEvent->setValues("GemCluster1d_is_tpc", i_GemCluster1d_is_tpc);
 
