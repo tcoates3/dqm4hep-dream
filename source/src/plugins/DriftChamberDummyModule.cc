@@ -105,7 +105,7 @@ namespace dqm4hep {
 
     }
     
-    DQM_PLUGIN_DECL(DriftChamberDummyModule, "DreamDriftChamberDummyModule");
+    DQM_PLUGIN_DECL(DriftChamberDummyModule, "DriftChamberDummyModule");
     
   }
   
