@@ -214,12 +214,14 @@ namespace dqm4hep {
 	    bool tdcValidity = ((myEventContainer[subeventLoopCounter] >> 14) & 0x1);
 	    dataValue.push_back(myEventContainer[subeventLoopCounter] & 0xFFF);
 	    dataChannel.push_back((myEventContainer[subeventLoopCounter] >> 17) & 0xF);	   
+	    //dqm_warning("V775 channel: {0}", dataChannel.back());
 	  }
 	  if (isV792AC or isV862) {
 	    isADC = true;
 	    //adcValidity ?
 	    dataValue.push_back(myEventContainer[subeventLoopCounter] & 0xFFF);
-	    dataChannel.push_back((myEventContainer[subeventLoopCounter] >> 16) & 0x1F);
+	    dataChannel.push_back((myEventContainer[subeventLoopCounter] >> 16) & 0x1F); 
+	    //dqm_warning("V792AC channel: {0}", dataChannel.back());
 	  }
 
 	/*
@@ -237,6 +239,7 @@ namespace dqm4hep {
 	  DecodeV862
 	    (same as V792AC)
 	*/
+
 	}
 	subeventLoopCounter += mySubeventHeader.subeventSize/4;
       }
@@ -246,11 +249,15 @@ namespace dqm4hep {
 
 
       if (isADC) {
-	pGenericEvent->setValues("EventType", "ADC");
+	std::vector<std::string> eventTypeString;
+	eventTypeString.push_back("ADC");
+	pGenericEvent->setValues("EventType", eventTypeString);
 	pGenericEvent->setValues("ADC", dataValue);
       }
       if (isTDC) {
-	pGenericEvent->setValues("EventType", "TDC");
+	std::vector<std::string> eventTypeString;
+	eventTypeString.push_back("TDC");
+	pGenericEvent->setValues("EventType", eventTypeString);
 	pGenericEvent->setValues("TDC", dataValue);
       }
       if (!isADC and !isTDC) {
