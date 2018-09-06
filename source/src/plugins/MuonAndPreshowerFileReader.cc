@@ -76,7 +76,7 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     MuonAndPreshowerFileReader::~MuonAndPreshowerFileReader() {
-      dqm_debug("Inside destructor");
+      dqm_debug("Inside (muon) destructor");
 
     }
 

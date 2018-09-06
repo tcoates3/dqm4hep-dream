@@ -88,8 +88,15 @@ namespace dqm4hep {
       FILE* inputFile = 0;
 
     private:
-      uint32_t hexEventMarker = 0xCAFECAFE;
-      uint32_t hexSubeventMarker = 0xACABACAB;
+      uint32_t hexMarkerEvent = 0xCAFECAFE;
+      uint32_t hexMarkerSubevent = 0xACABACAB;
+
+      uint32_t hexMarkerTDC  = 0x08000024;
+      uint32_t hexMarkerAncl = 0x03000025;
+      uint32_t hexMarkerADC0 = 0x04000005;
+      uint32_t hexMarkerADC1 = 0x05000005;
+      uint32_t hexMarkerADC2 = 0x06000005;
+      uint32_t hexMarkerADC3 = 0x07000005;
 
     };
     
@@ -97,6 +104,7 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     RD52FileReader::~RD52FileReader() {
+      dqm_debug("Inside (RD52) destructor");
       //
     }
 
@@ -150,7 +158,9 @@ namespace dqm4hep {
       EventHeader myEventHeader;
       fread(&myEventHeader, sizeof(EventHeader), 1, inputFile);
 
-      if (myEventHeader.eventMarker != hexEventMarker) {
+      // EOF detection here
+
+      if (myEventHeader.eventMarker != hexMarkerEvent) {
 	dqm_error("Could not locate the correct event marker. The read event marker was: {0}",myEventHeader.eventMarker);
 	return STATUS_CODE_FAILURE;
       }
@@ -162,9 +172,16 @@ namespace dqm4hep {
       SubeventHeader mySubeventHeader;
       uint32_t subeventLoopCounter = 0;
 
-      std::string valueType;
       std::vector<int> dataValue;
       std::vector<int> dataChannel;
+
+      int dataTDC[32];
+      int dataAncl[32];
+      int dataADC0[32];
+      int dataADC1[32];
+      int dataADC2[32];
+      int dataADC3[32];
+
 
       bool isV775 = false;
       bool isV792AC = false;
@@ -173,28 +190,58 @@ namespace dqm4hep {
       bool isTDC = false;
 
       while (true) {
+	dqm_debug("Subevent count: {0}", subeventLoopCounter);
 	if (subeventLoopCounter > eventDataSize) {
 	  break;
 	}
 
- 	memcpy(&mySubeventHeader, &myEventContainer[0], sizeof(mySubeventHeader));
-	if (mySubeventHeader.subeventMarker != hexSubeventMarker) {
-	  dqm_error("Could not locate the correct subevent marker. The read subevent marker was: {0}",mySubeventHeader.subeventMarker);
-	  return STATUS_CODE_FAILURE;
+ 	memcpy(&mySubeventHeader, &myEventContainer[subeventLoopCounter], sizeof(mySubeventHeader));
+
+	if (mySubeventHeader.subeventMarker != hexMarkerSubevent) {
+	  //dqm_warning("Could not locate the correct subevent marker. The read subevent marker was: {0}",mySubeventHeader.subeventMarker);
+	  break;
 	}
 	
-	// We should also check the validity bit here (bit 14) but previously the validity bit was always 0. Wonder if this is a feature of the module? 
-	// We also need to decode the trigger number, but the process for this in the original code is arcane and makes no sense.
+	
+	//dqm_debug((myEventContainer[subeventLoopCounter] >> 24) & 0x7);
+	if ( ((myEventContainer[subeventLoopCounter] >> 24) & 0x7) == 4) {
 
-	if ( ((myEventContainer[subeventLoopCounter] >> 24) & 0x7) == 0) {
+	  //dqm_debug("ModuleID: {0}", mySubeventHeader.moduleID);
+
+	  for (int subeventChunk = 5; subeventChunk < (mySubeventHeader.subeventSize/4); subeventChunk++) {
+	    if (mySubeventHeader.moduleID != 0x32026) {
+	      //dqm_debug("Index: {0}", subeventChunk);
+	      //dqm_debug("Index in subevent: {0}", subeventChunk);
+	    }
+
+	    if (mySubeventHeader.moduleID == hexMarkerTDC)  {
+	      //dqm_warning("TDC: {0}", (myEventContainer[subeventLoopCounter+subeventChunk] >> 17) & 0xF);
+	    }
+	    if (mySubeventHeader.moduleID == hexMarkerAncl) {
+	      //dqm_warning("Ancillary: {0}", (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F);
+	    }
+	    if (mySubeventHeader.moduleID == hexMarkerADC0) {
+	      //dqm_warning("ADC0: {0}", (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F);
+	      int thisChannel= (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
+	      dataADC0[thisChannel] =  static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);
+	      //dqm_debug("Raw number: {0}", myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);
+	      //dqm_debug("This ADC0 added: {0}", dataADC0[thisChannel]);
+	    }
+	    if (mySubeventHeader.moduleID == hexMarkerADC1) {
+	      //dqm_warning("ADC1: {0}", (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F);
+	    }
+	    if (mySubeventHeader.moduleID == hexMarkerADC2) {
+	      //dqm_warning("ADC2: {0}", (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F);
+	    }
+	    if (mySubeventHeader.moduleID == hexMarkerADC3) {
+	      //dqm_warning("ADC3: {0}", (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F);
+	    }
+
+	  }
+
 
 	  //
-	  // So now we need to know what the different module IDs are
-	  // Options so far in dec: 134217764, 50331685
-	  // Options so far in hex: 0x8000024, 0x3000025
-	  // Although the DreamDaq says "MARKER_V775" should be 0x20000024
-	  //
-
+	  /*
 	  if (mySubeventHeader.moduleID == 0x8000024) { //Placeholder
 	    isV775 = true;
 	  }
@@ -204,24 +251,24 @@ namespace dqm4hep {
 	  if (mySubeventHeader.moduleID == 0x3000025) { //Placeholder
 	    isV862 = true;
 	  }
+	  
 
 	  if (!isV775 and !isV792AC and !isV862) {
 	    dqm_error("The Module ID could not be classified. The read module Id was: {0}", mySubeventHeader.moduleID);
 	    return STATUS_CODE_FAILURE;
-	  }
+	    }
+	  */
+
 	  if (isV775) {
 	    isTDC = true;
 	    bool tdcValidity = ((myEventContainer[subeventLoopCounter] >> 14) & 0x1);
 	    dataValue.push_back(myEventContainer[subeventLoopCounter] & 0xFFF);
-	    dataChannel.push_back((myEventContainer[subeventLoopCounter] >> 17) & 0xF);	   
-	    //dqm_warning("V775 channel: {0}", dataChannel.back());
+	    dataChannel.push_back((myEventContainer[subeventLoopCounter] >> 17) & 0xF);
 	  }
 	  if (isV792AC or isV862) {
 	    isADC = true;
-	    //adcValidity ?
 	    dataValue.push_back(myEventContainer[subeventLoopCounter] & 0xFFF);
 	    dataChannel.push_back((myEventContainer[subeventLoopCounter] >> 16) & 0x1F); 
-	    //dqm_warning("V792AC channel: {0}", dataChannel.back());
 	  }
 
 	/*
@@ -229,25 +276,31 @@ namespace dqm4hep {
 	    [Type]			= (buf[i] >> 24) & 0x7	  
 	  DecodeV775 (TDC)
 	    data			= (buf[i] & 0xFFF)
-	    channel			= (buf[i] >> 17) 0xF
+	    channel			= (buf[i] >> 17) & 0xF
 	    valid			= (buf[i] >> 14) & 0x1 
-	  DecodeV792AC (ADCN)
+	    overflow			= (buf[i] >> 12) & 0x1;
+	    under threshold		= (buf[i] >> 13) & 0x1;	
+	  DecodeV792AC (ADC)
 	    data			= (buf[i] & 0xFFF);
 	    channel			= (buf[i] >> 16) & 0x1F;
-	    ov				= (buf[i] >> 12) & 0x1;
-	    un				= (buf[i] >> 13) & 0x1;	 
+	    overflow			= (buf[i] >> 12) & 0x1;
+	    under threshold		= (buf[i] >> 13) & 0x1;	 
 	  DecodeV862
 	    (same as V792AC)
 	*/
 
 	}
 	subeventLoopCounter += mySubeventHeader.subeventSize/4;
+	//subeventLoopCounter++;
+	
       }
+      
 
       pEvent->setEventNumber(myEventHeader.eventNumber);
+
       //pEvent->setTimeStamp(core::time::asPoint(myEventHeader.tsec)); // Compiler says "ambiguous"
 
-
+      /*
       if (isADC) {
 	std::vector<std::string> eventTypeString;
 	eventTypeString.push_back("ADC");
@@ -260,12 +313,18 @@ namespace dqm4hep {
 	pGenericEvent->setValues("EventType", eventTypeString);
 	pGenericEvent->setValues("TDC", dataValue);
       }
-      if (!isADC and !isTDC) {
-	
+
+      pGenericEvent->setValues("Channels", dataChannel);
+      */
+
+      std::vector<int> dataVecADC0;
+      dataVecADC0.assign(std::begin(dataADC0), std::end(dataADC0));
+
+      for (int i = 0; i < dataVecADC0.size(); i++) {
+	//dqm_debug("Reader number: {0}", dataVecADC0[i]);
       }
 
-      pGenericEvent->setValues(valueType, dataValue);
-      pGenericEvent->setValues("Channels", dataChannel);
+      pGenericEvent->setValues("ADC0", dataVecADC0);
 
       onEventRead().emit(pEvent);
       delete[] myEventContainer;

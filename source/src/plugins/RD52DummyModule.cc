@@ -57,7 +57,9 @@ namespace dqm4hep {
       void process(core::EventPtr event) override;
       
     private:
+      //online::OnlineElementPtr m_pHitmap = {nullptr};
       std::vector<online::OnlineElementPtr> m_pSpectrum;
+
     };
     
     //-------------------------------------------------------------------------------------------------
@@ -69,6 +71,13 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
     
     void RD52DummyModule::initModule() {
+      //m_pHitmap = online::ModuleApi::getMonitorElement(this, "/", "Hitmap");
+      
+      /*      for (int i=0; i<31; i++) {
+        std::string meName = "SpectrumCh" + std::to_string(i);
+        m_pSpectrum.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
+
+	}*/
 
     }
     
@@ -105,30 +114,24 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     void RD52DummyModule::process(core::EventPtr pEvent) {
+      dqm_debug("Inside process()");
 
       if (nullptr == pEvent) {
 	dqm_warning("Event pointer is invalid - skipping this event");
 	return;
       }
 
-      std::vector<std::string> eventType;
-      std::vector<int> eventChannels;
-      std::vector<int> eventADC;
-      std::vector<int> eventTDC;
+      std::vector<int> eventADC0;
 
       core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
-      pGenericEvent->getValues("EventType", eventType);
-      pGenericEvent->getValues("Channels", eventChannels);
+      pGenericEvent->getValues("ADC0", eventADC0);
 
-      if (eventType[0] == "ADC") {
-	pGenericEvent->getValues("ADCN", eventADC);
-	// Other ADC processing here...
-      }
-      if (eventType[0] == "TDC") {
-	pGenericEvent->getValues("TDC", eventTDC);
-	// Other TDC processing here...
-      }
-
+      /*      for (int i=0; i<31; i++) {
+        m_pSpectrum[i]->objectTo<TH1>()->Fill(eventADC0[i]);
+	}*/
+      
+      dqm_debug("Analysis module finished");
+      
     }
     
     DQM_PLUGIN_DECL(RD52DummyModule, "RD52DummyModule");
