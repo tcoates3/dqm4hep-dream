@@ -151,6 +151,7 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode RD52FileReader::readNextEvent() {
+      dqm_debug("Inside event reader");
 
       if (feof(inputFile)) {
 	dqm_warning("Reached end of file");
@@ -190,10 +191,11 @@ namespace dqm4hep {
 
  	memcpy(&mySubeventHeader, &myEventContainer[subeventLoopCounter], sizeof(mySubeventHeader));
 
+	/*
 	if (mySubeventHeader.subeventMarker != hexMarkerSubevent) {
 	  dqm_warning("Could not locate the correct subevent marker. The read subevent marker was: {0}",mySubeventHeader.subeventMarker);
 	  break;
-	}
+	}*/
 	
 	if ( ((myEventContainer[subeventLoopCounter] >> 24) & 0x7) == 4) {
 	  

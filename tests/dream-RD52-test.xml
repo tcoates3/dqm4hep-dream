@@ -4,7 +4,7 @@
   <settings mode="EventReader">
     <parameter name="EnableStatistics"> true </parameter>
     <parameter name="EventReader"> RD52FileReader </parameter>
-    <parameter name="EventFileName">/lustre/scratch/epp/ilc/tc297/testbeamData/dream/cal/data/datafile_run12238_0.dat </parameter>
+    <parameter name="EventFileName"> /lustre/scratch/epp/ilc/tc297/testbeamData/dream/cal/data/datafile_run12452_0.dat</parameter>
     <parameter name="CyclePeriod"> 1 </parameter>
     <parameter name="CycleCounter"> 0 </parameter>
     <parameter name="CycleTimeout"> 0 </parameter>
@@ -13,20 +13,35 @@
     <parameter name="EventSource"> TestSource </parameter>
     <parameter name="MonitorElementCollector"> TestMeCollector </parameter>
   </settings>
-  
+
   <!-- Archiver settings -->
-  <archiver enable="false"> </archiver>
+  <archiver enable="true">
+    <parameter name="FileName" value="RD52-dream-archive.root"/>
+    <parameter name="OpenMode" value="RECREATE"/>
+    <parameter name="AllowOverwrite" value="true"/>
+    <parameter name="AppendRunNumber" value="false"/>
+    <selectors>
+      <selector regex=".*" select="true"/>
+    </selectors>    
+  </archiver>
   
   <!-- The analysis module goes here -->
-  <module type="RD52DummyModule" name="myRD52DummyModule"/>
+  <module type="RD52MainModule" name="myRD52MainModule"/>
 
   <!-- Monitor elements in the <storage> tag -->
   <storage>
     <style theme="polar"/>
     <monitorElements>
 
-      <bookElement type="TH1F" path="/" name="dummyplot" title="A dummy plot" nBinsX="100" minX="0" maxX="100">
-      </bookElement>
+      <for id="channelNum" begin="0" end="71" increment="1">
+        <bookElement type="TH1I" path="/" name="SpectrumCh$FOR{channelNum}" title="Spectrum for channel $FOR{channelNum}" nBinsX="1000" minX="0" maxX="1000">
+        </bookElement>
+      </for>
+
+      <for id="leakageNum" begin="0" end="15" increment="1">
+        <bookElement type="TH1I" path="/" name="Leakage$FOR{leakageNum}" title="Spectrum for Leakage $FOR{leakageNum}" nBinsX="1000" minX="0" maxX="1000">
+        </bookElement>
+      </for>
 
     </monitorElements>
   </storage>
