@@ -57,8 +57,22 @@ namespace dqm4hep {
       void process(core::EventPtr event) override;
       
     private:
-      //online::OnlineElementPtr m_pHitmap = {nullptr};
-      std::vector<online::OnlineElementPtr> m_pSpectrum;
+      /*
+      std::vector<online::OnlineElementPtr> m_pSpectraADC0;
+      std::vector<online::OnlineElementPtr> m_pSpectraADC1;
+      std::vector<online::OnlineElementPtr> m_pSpectraADC2;
+      std::vector<online::OnlineElementPtr> m_pSpectraADC3;
+      std::vector<online::OnlineElementPtr> m_pSpectraAncl;
+      std::vector<online::OnlineElementPtr> m_pSpectraTDC;
+      */
+
+      std::vector<online::OnlineElementPtr> m_pChannelSpectra;
+      std::vector<online::OnlineElementPtr> m_pLeakage;
+
+      std::vector<online::OnlineElementPtr> m_pIT;
+      std::vector<online::OnlineElementPtr> m_pT3_PSD;
+      std::vector<online::OnlineElementPtr> m_pTC;
+      std::vector<online::OnlineElementPtr> m_pMu;
 
     };
     
@@ -71,13 +85,22 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
     
     void RD52DummyModule::initModule() {
-      //m_pHitmap = online::ModuleApi::getMonitorElement(this, "/", "Hitmap");
+      //m_pTestHisto = online::ModuleApi::getMonitorElement(this, "/", "Channel1");
       
-      /*      for (int i=0; i<31; i++) {
+      for (int i=0; i<72; i++) {
         std::string meName = "SpectrumCh" + std::to_string(i);
-        m_pSpectrum.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
+        m_pChannelSpectra.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
+      }
 
-	}*/
+      for (int i=0; i<21; i++) {
+        std::string meName = "Leakage" + std::to_string(i);
+        m_pLeakage.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
+      }
+
+      m_pIT.push_back(online::ModuleApi::getMonitorElement(this, "/", "IT"));
+      m_pT3_PSD.push_back(online::ModuleApi::getMonitorElement(this, "/", "T3-PSD"));
+      m_pTC.push_back(online::ModuleApi::getMonitorElement(this, "/", "TC"));
+      m_pMu.push_back(online::ModuleApi::getMonitorElement(this, "/", "mu"));
 
     }
     
@@ -114,7 +137,6 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     void RD52DummyModule::process(core::EventPtr pEvent) {
-      dqm_debug("Inside process()");
 
       if (nullptr == pEvent) {
 	dqm_warning("Event pointer is invalid - skipping this event");
@@ -122,15 +144,63 @@ namespace dqm4hep {
       }
 
       std::vector<int> eventADC0;
+      std::vector<int> eventADC1;
+      std::vector<int> eventADC2;
+      std::vector<int> eventADC3;
+      std::vector<int> eventAncl;
+      std::vector<int> eventTDC;
 
       core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
-      pGenericEvent->getValues("ADC0", eventADC0);
 
-      /*      for (int i=0; i<31; i++) {
-        m_pSpectrum[i]->objectTo<TH1>()->Fill(eventADC0[i]);
-	}*/
-      
-      dqm_debug("Analysis module finished");
+      pGenericEvent->getValues("ADC0", eventADC0);
+      pGenericEvent->getValues("ADC1", eventADC1);
+      pGenericEvent->getValues("ADC2", eventADC2);
+      pGenericEvent->getValues("ADC3", eventADC3);
+      pGenericEvent->getValues("Ancl", eventAncl);
+      pGenericEvent->getValues("TDC",  eventTDC);
+
+      int j  = 0;
+      for (int i=0; i<32; i++) {
+	m_pChannelSpectra[j]->objectTo<TH1I>()->Fill(eventADC0[i]);
+	j++;
+        //m_pSpectraADC0[i]->objectTo<TH1I>()->Fill(eventADC0[i]);
+	//m_pSpectraADC1[i]->objectTo<TH1I>()->Fill(eventADC1[i]);
+      }
+
+      for (int i=0; i<32; i++) {
+	m_pChannelSpectra[j]->objectTo<TH1I>()->Fill(eventADC1[i]);
+	j++;
+        //m_pSpectraADC0[i]->objectTo<TH1I>()->Fill(eventADC0[i]);
+	//m_pSpectraADC1[i]->objectTo<TH1I>()->Fill(eventADC1[i]);
+      }
+
+      for (int i=0; i<8; i++) {
+	m_pChannelSpectra[j]->objectTo<TH1I>()->Fill(eventADC2[i]);
+      }
+
+      /*
+      for (int i=0; i<9; i++) {
+	m_pSpectraADC2[i]->objectTo<TH1I>()->Fill(eventADC2[i]);
+      }
+      */
+
+      int k = 1;
+      for (int i=16; i<32; i++) {
+	m_pLeakage[k]->objectTo<TH1I>()->Fill(eventADC3[i]);
+	k++;
+      }
+
+      /*
+      m_pLeakage[17]->objectTo<TH1I>()->Fill(eventADC4[0]);
+      m_pLeakage[18]->objectTo<TH1I>()->Fill(eventADC4[1]);
+      m_pLeakage[19]->objectTo<TH1I>()->Fill(eventADC4[2]);
+      m_pLeakage[20]->objectTo<TH1I>()->Fill(eventADC4[3]);
+
+      m_pIT[0]->objectTo<TH1I>()->Fill(eventADC4[8]);
+      m_pT3_PSD[0]->objectTo<TH1I>()->Fill(eventADC4[9]);
+      m_pTC[0]->objectTo<TH1I>()->Fill(eventADC4[10]);
+      m_pMu[0]->objectTo<TH1I>()->Fill(eventADC4[11]);
+      */
       
     }
     
