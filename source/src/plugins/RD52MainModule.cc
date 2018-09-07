@@ -86,7 +86,7 @@ namespace dqm4hep {
     
     void RD52MainModule::initModule() {
       //m_pTestHisto = online::ModuleApi::getMonitorElement(this, "/", "Channel1");
-      /*
+      
 
       for (int i=0; i<72; i++) {
         std::string meName = "SpectrumCh" + std::to_string(i);
@@ -94,12 +94,12 @@ namespace dqm4hep {
         //m_pChannelSpectra.push_back(online::ModuleApi::getMonitorElement("/", meName, this));
       }
 
-      for (int i=0; i<15; i++) {
+      for (int i=0; i<16; i++) {
         std::string meName = "Leakage" + std::to_string(i);
         m_pLeakage.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
         //m_pLeakage.push_back(online::ModuleApi::getMonitorElement("/", meName, this));
       }
-      */
+      
 
       /*
       m_pIT.push_back(online::ModuleApi::getMonitorElement(this, "/", "IT"));
@@ -142,31 +142,30 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     void RD52MainModule::process(core::EventPtr pEvent) {
-      dqm_debug("Inside module process");
+      //dqm_debug("Inside module process");
 
       if (nullptr == pEvent) {
 	dqm_warning("Event pointer is invalid - skipping this event");
 	return;
       }
 
-      /*
       std::vector<int> eventADC0;
       std::vector<int> eventADC1;
       std::vector<int> eventADC2;
       std::vector<int> eventADC3;
       std::vector<int> eventAncl;
       std::vector<int> eventTDC;
-
+      
       core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
-
+      
       pGenericEvent->getValues("ADC0", eventADC0);
       pGenericEvent->getValues("ADC1", eventADC1);
-      pGenericEvent->getValues("ADC2", eventADC2);
-      pGenericEvent->getValues("ADC3", eventADC3);
-      pGenericEvent->getValues("Ancl", eventAncl);
-      pGenericEvent->getValues("TDC",  eventTDC);
+      //pGenericEvent->getValues("ADC2", eventADC2);
+      //pGenericEvent->getValues("ADC3", eventADC3);
+      //pGenericEvent->getValues("Ancl", eventAncl);
+      //pGenericEvent->getValues("TDC",  eventTDC);
 
-      /*      for (int i=0; i<32; i++) {
+      for (int i=0; i<32; i++) {
 	m_pChannelSpectra[i]->objectTo<TH1I>()->Fill(eventADC0[i]);
         //m_pSpectraADC0[i]->objectTo<TH1I>()->Fill(eventADC0[i]);
 	//m_pSpectraADC1[i]->objectTo<TH1I>()->Fill(eventADC1[i]);
@@ -177,11 +176,11 @@ namespace dqm4hep {
         //m_pSpectraADC0[i]->objectTo<TH1I>()->Fill(eventADC0[i]);
 	//m_pSpectraADC1[i]->objectTo<TH1I>()->Fill(eventADC1[i]);
       }
-
+      /*
       for (int i=0; i<9; i++) {
 	m_pChannelSpectra[64+i]->objectTo<TH1I>()->Fill(eventADC2[i]);
-	}*/
-
+      }
+      */
       /*
       for (int i=0; i<9; i++) {
 	m_pSpectraADC2[i]->objectTo<TH1I>()->Fill(eventADC2[i]);

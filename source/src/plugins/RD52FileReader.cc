@@ -166,7 +166,7 @@ namespace dqm4hep {
       fread(&myEventHeader, sizeof(EventHeader), 1, inputFile);
 
       if (myEventHeader.eventMarker != hexMarkerEvent) {
-	dqm_error("Could not locate the correct event marker. The read event marker was: {0}",myEventHeader.eventMarker);
+	dqm_error("Could not locate the correct event marker. The read event marker was: {0}", myEventHeader.eventMarker);
 	return STATUS_CODE_FAILURE;
       }
 
@@ -186,7 +186,6 @@ namespace dqm4hep {
       int dataADC3[32] = {999999};
 
       while (true) {
-	dqm_debug("Loop counter: {0}", subeventLoopCounter);
 
 	if (subeventLoopCounter > eventDataSize-1) {
 	  break;
@@ -211,13 +210,15 @@ namespace dqm4hep {
 	    //dqm_debug("Inside for loop over subevent");
 	    if (mySubeventHeader.moduleID == hexMarkerTDC)  {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 17) & 0xF;
-	      dataTDC[thisChannel] =  static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    }
+	      //dataTDC[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    
+	    }
 	    if (mySubeventHeader.moduleID == hexMarkerAncl) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
-	      dataAncl[thisChannel] =  static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    }
+	      //dataAncl[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    
+	    }
 	    if (mySubeventHeader.moduleID == hexMarkerADC0) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
-	      dataADC0[thisChannel] =  static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);
+	      dataADC0[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);
 	    }
 	    if (mySubeventHeader.moduleID == hexMarkerADC1) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
@@ -225,11 +226,11 @@ namespace dqm4hep {
 	    }
 	    if (mySubeventHeader.moduleID == hexMarkerADC2) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
-	      dataADC2[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);
+	      //dataADC2[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);
 	    }
 	    if (mySubeventHeader.moduleID == hexMarkerADC3) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
-	      dataADC3[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    
+	      //dataADC3[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    
 	    }
 
 	  }
@@ -285,9 +286,9 @@ namespace dqm4hep {
       onEventRead().emit(pEvent);
       delete[] myEventContainer;
       return STATUS_CODE_SUCCESS;
-    }
+	}
 
-    StatusCode RD52FileReader::close() {
+	StatusCode RD52FileReader::close() {
       
       fclose(inputFile);
 
