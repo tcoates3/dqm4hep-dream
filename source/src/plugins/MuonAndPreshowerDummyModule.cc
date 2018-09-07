@@ -59,6 +59,8 @@ namespace dqm4hep {
       
     private:
       // your monitor elements here !
+      online::OnlineElementPtr m_pGemHits = {nullptr};
+
     };
     
     //-------------------------------------------------------------------------------------------------
@@ -70,6 +72,8 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
     
     void MuonAndPreshowerDummyModule::initModule() {
+      m_pGemHits = online::ModuleApi::getMonitorElement(this, "/", "GemHits");
+
 
     }
     
@@ -115,6 +119,8 @@ namespace dqm4hep {
       std::vector<int> nGemHits;
       core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
       pGenericEvent->getValues("nGemHit", nGemHits);
+
+      m_pGemHits->objectTo<TH1I>()->Fill(nGemHits[0]);
 
       dqm_warning("Number of GEM hits: {0}", nGemHits[0]);
 
