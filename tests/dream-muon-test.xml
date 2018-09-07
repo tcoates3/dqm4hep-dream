@@ -4,7 +4,7 @@
   <settings mode="EventReader">
     <parameter name="EnableStatistics"> true </parameter>
     <parameter name="EventReader"> MuonAndPreshowerFileReader </parameter>
-    <parameter name="EventFileName">/home/dreamtest/monitoring/runs/mockData/rec_run4427.root </parameter>
+    <parameter name="EventFileName">/lustre/scratch/epp/ilc/tc297/testbeamData/dream/muon-preshower/rec_run3.root</parameter> 
     <parameter name="CyclePeriod"> 1 </parameter>
     <parameter name="CycleCounter"> 0 </parameter>
     <parameter name="CycleTimeout"> 0 </parameter>
@@ -32,7 +32,7 @@
   <storage>
     <style theme="polar"/>
     <monitorElements>
-      <bookElement type="TH2I" path="/" name="HitmapDummy" title="A dummy hitmap" nBinsX="8" minX="0" maxX="8" nBinsY="8" minY="0" maxY="8" drawOption="colz">
+      <bookElement type="TH1I" path="/" name="GemHits" title="Total GEM hits" nBinsX="100" minX="0" maxX="100">
       </bookElement>
     </monitorElements>
   </storage>
