@@ -158,6 +158,7 @@ namespace dqm4hep {
 	return STATUS_CODE_OUT_OF_RANGE;
       }
 
+      dqm_debug("After EOF detection");
       EventPtr pEvent = GenericEvent::make_shared();
       GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
 
@@ -185,32 +186,35 @@ namespace dqm4hep {
       int dataADC3[32] = {999999};
 
       while (true) {
-	if (subeventLoopCounter > eventDataSize) {
+	dqm_debug("Loop counter: {0}", subeventLoopCounter);
+
+	if (subeventLoopCounter > eventDataSize-1) {
 	  break;
 	}
 
  	memcpy(&mySubeventHeader, &myEventContainer[subeventLoopCounter], sizeof(mySubeventHeader));
 
-	/*
+	
 	if (mySubeventHeader.subeventMarker != hexMarkerSubevent) {
 	  dqm_warning("Could not locate the correct subevent marker. The read subevent marker was: {0}",mySubeventHeader.subeventMarker);
 	  break;
-	}*/
+	}
 	
+	//dqm_debug("Before event type detection");
+
 	if ( ((myEventContainer[subeventLoopCounter] >> 24) & 0x7) == 4) {
 	  
 	  for (int subeventChunk = 5; subeventChunk < (mySubeventHeader.subeventSize/4); subeventChunk++) {
 	    if (mySubeventHeader.moduleID != 0x32026) {
 	    }
 
+	    //dqm_debug("Inside for loop over subevent");
 	    if (mySubeventHeader.moduleID == hexMarkerTDC)  {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 17) & 0xF;
-	      dataTDC[thisChannel] =  static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	      
-	    }
+	      dataTDC[thisChannel] =  static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    }
 	    if (mySubeventHeader.moduleID == hexMarkerAncl) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
-	      dataAncl[thisChannel] =  static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	      
-	    }
+	      dataAncl[thisChannel] =  static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    }
 	    if (mySubeventHeader.moduleID == hexMarkerADC0) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
 	      dataADC0[thisChannel] =  static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);
@@ -225,7 +229,7 @@ namespace dqm4hep {
 	    }
 	    if (mySubeventHeader.moduleID == hexMarkerADC3) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
-	      dataADC3[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	      
+	      dataADC3[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    
 	    }
 
 	  }

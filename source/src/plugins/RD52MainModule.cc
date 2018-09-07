@@ -86,7 +86,8 @@ namespace dqm4hep {
     
     void RD52MainModule::initModule() {
       //m_pTestHisto = online::ModuleApi::getMonitorElement(this, "/", "Channel1");
-      
+      /*
+
       for (int i=0; i<72; i++) {
         std::string meName = "SpectrumCh" + std::to_string(i);
         m_pChannelSpectra.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
@@ -98,6 +99,7 @@ namespace dqm4hep {
         m_pLeakage.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
         //m_pLeakage.push_back(online::ModuleApi::getMonitorElement("/", meName, this));
       }
+      */
 
       /*
       m_pIT.push_back(online::ModuleApi::getMonitorElement(this, "/", "IT"));
@@ -147,6 +149,7 @@ namespace dqm4hep {
 	return;
       }
 
+      /*
       std::vector<int> eventADC0;
       std::vector<int> eventADC1;
       std::vector<int> eventADC2;
