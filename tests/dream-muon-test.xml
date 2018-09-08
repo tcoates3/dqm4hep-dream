@@ -32,8 +32,61 @@
   <storage>
     <style theme="polar"/>
     <monitorElements>
-      <bookElement type="TH1I" path="/" name="GemHits" title="Total GEM hits" nBinsX="100" minX="0" maxX="100">
+
+      <bookElement type="TH1D" path="/" name="x1" title="x1" nBinsX="100" minX="-60" maxX="60">
       </bookElement>
+      <bookElement type="TH1D" path="/" name="x2" title="x2" nBinsX="100" minX="-60" maxX="60">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="x3" title="x3" nBinsX="100" minX="-60" maxX="60">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="x4" title="x4" nBinsX="100" minX="-60" maxX="60">
+      </bookElement>
+
+      <bookElement type="TH1D" path="/" name="qx1" title="qx1" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="qx2" title="qx2" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="qx3" title="qx3" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="qx4" title="qx4" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+
+      <bookElement type="TH1D" path="/" name="nHitx1" title="nHitx1" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="nHitx2" title="nHitx2" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="nHitx3" title="nHitx3" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="nHitx4" title="nHitx4" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+
+      <bookElement type="TH1D" path="/" name="y1" title="y1" nBinsX="100" minX="-60" maxX="60">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="y2" title="y2" nBinsX="100" minX="-60" maxX="60">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="y3" title="y3" nBinsX="100" minX="-60" maxX="60">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="y4" title="y4" nBinsX="100" minX="-60" maxX="60">
+      </bookElement>
+
+      <bookElement type="TH1D" path="/" name="qy1" title="qy1" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="qy2" title="qy2" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="qy3" title="qy3" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="qy4" title="qy4" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+
+      <bookElement type="TH1D" path="/" name="nHity1" title="nHity1" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="nHity2" title="nHity2" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="nHity3" title="nHity3" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="nHity4" title="nHity4" nBinsX="100" minX="0" maxX="8000">
+      </bookElement>
+
     </monitorElements>
   </storage>
 

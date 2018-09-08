@@ -82,8 +82,7 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode MuonAndPreshowerFileReader::open(const std::string &fname) {
-      dqm_debug("Inside open()");
-      
+            
       rootFile = new TFile(fname.c_str());
       mainTree = (TTree*)rootFile->Get("t1");
 
@@ -101,8 +100,7 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode MuonAndPreshowerFileReader::skipNEvents(int nEvents) {
-      dqm_debug("Inside skipNEvents()");
-
+      
       currentEventNum += nEvents;
 
       return STATUS_CODE_SUCCESS;
@@ -111,16 +109,14 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode MuonAndPreshowerFileReader::runInfo(core::Run &run) {
-      dqm_debug("Inside runInfo()");
-
+      
       return STATUS_CODE_SUCCESS;
     }
 
     //-------------------------------------------------------------------------------------------------
 
     StatusCode MuonAndPreshowerFileReader::readNextEvent() {
-      dqm_debug("Inside readNextEvent()");
-
+      
       if (currentEventNum == nEntries-1) {
 	dqm_info("Reached end of file");
 	return STATUS_CODE_OUT_OF_RANGE;
@@ -497,7 +493,6 @@ namespace dqm4hep {
   
 
     StatusCode MuonAndPreshowerFileReader::close() {
-      dqm_debug("Inside close()");
      
       return STATUS_CODE_SUCCESS;
     }
