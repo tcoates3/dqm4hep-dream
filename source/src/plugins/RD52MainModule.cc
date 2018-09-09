@@ -57,14 +57,6 @@ namespace dqm4hep {
       void process(core::EventPtr event) override;
       
     private:
-      /*
-      std::vector<online::OnlineElementPtr> m_pSpectraADC0;
-      std::vector<online::OnlineElementPtr> m_pSpectraADC1;
-      std::vector<online::OnlineElementPtr> m_pSpectraADC2;
-      std::vector<online::OnlineElementPtr> m_pSpectraADC3;
-      std::vector<online::OnlineElementPtr> m_pSpectraAncl;
-      std::vector<online::OnlineElementPtr> m_pSpectraTDC;
-      */
 
       std::vector<online::OnlineElementPtr> m_pChannelSpectra;
       std::vector<online::OnlineElementPtr> m_pLeakage;
@@ -85,19 +77,15 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
     
     void RD52MainModule::initModule() {
-      //m_pTestHisto = online::ModuleApi::getMonitorElement(this, "/", "Channel1");
       
-
       for (int i=0; i<72; i++) {
         std::string meName = "SpectrumCh" + std::to_string(i);
         m_pChannelSpectra.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
-        //m_pChannelSpectra.push_back(online::ModuleApi::getMonitorElement("/", meName, this));
       }
 
       for (int i=0; i<16; i++) {
         std::string meName = "Leakage" + std::to_string(i);
         m_pLeakage.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
-        //m_pLeakage.push_back(online::ModuleApi::getMonitorElement("/", meName, this));
       }
       
 
@@ -160,21 +148,22 @@ namespace dqm4hep {
       
       pGenericEvent->getValues("ADC0", eventADC0);
       pGenericEvent->getValues("ADC1", eventADC1);
-      //pGenericEvent->getValues("ADC2", eventADC2);
-      //pGenericEvent->getValues("ADC3", eventADC3);
-      //pGenericEvent->getValues("Ancl", eventAncl);
-      //pGenericEvent->getValues("TDC",  eventTDC);
+      pGenericEvent->getValues("ADC2", eventADC2);
+      pGenericEvent->getValues("ADC3", eventADC3);
+      pGenericEvent->getValues("Ancl", eventAncl);
+      pGenericEvent->getValues("TDC",  eventTDC);
+
+      dqm_debug("0th element in vector: {0}", eventADC2[0]);
+      //dqm_debug("0th element in vector: {0}", eventADC3[0]);
+      //dqm_debug("0th element in vector: {0}", eventAncl[0]);
+
 
       for (int i=0; i<32; i++) {
 	m_pChannelSpectra[i]->objectTo<TH1I>()->Fill(eventADC0[i]);
-        //m_pSpectraADC0[i]->objectTo<TH1I>()->Fill(eventADC0[i]);
-	//m_pSpectraADC1[i]->objectTo<TH1I>()->Fill(eventADC1[i]);
       }
 
       for (int i=0; i<32; i++) {
 	m_pChannelSpectra[32+i]->objectTo<TH1I>()->Fill(eventADC1[i]);
-        //m_pSpectraADC0[i]->objectTo<TH1I>()->Fill(eventADC0[i]);
-	//m_pSpectraADC1[i]->objectTo<TH1I>()->Fill(eventADC1[i]);
       }
       /*
       for (int i=0; i<9; i++) {
@@ -206,6 +195,8 @@ namespace dqm4hep {
       m_pMu[0]->objectTo<TH1I>()->Fill(eventADC4[11]);
       */
       
+      //dqm_debug("Completed module");
+
     }
     
     DQM_PLUGIN_DECL(RD52MainModule, "RD52MainModule");

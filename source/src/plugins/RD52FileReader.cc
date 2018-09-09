@@ -151,14 +151,12 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode RD52FileReader::readNextEvent() {
-      dqm_debug("Inside event reader");
 
       if (feof(inputFile)) {
 	dqm_warning("Reached end of file");
 	return STATUS_CODE_OUT_OF_RANGE;
       }
 
-      dqm_debug("After EOF detection");
       EventPtr pEvent = GenericEvent::make_shared();
       GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
 
@@ -214,7 +212,7 @@ namespace dqm4hep {
 	    }
 	    if (mySubeventHeader.moduleID == hexMarkerAncl) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
-	      //dataAncl[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    
+	      dataAncl[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    
 	    }
 	    if (mySubeventHeader.moduleID == hexMarkerADC0) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
@@ -226,11 +224,12 @@ namespace dqm4hep {
 	    }
 	    if (mySubeventHeader.moduleID == hexMarkerADC2) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
-	      //dataADC2[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);
+	      dataADC2[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);
+	      //dqm_debug("Value of ADC2 here: {0}", myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);
 	    }
 	    if (mySubeventHeader.moduleID == hexMarkerADC3) {
 	      int thisChannel = (myEventContainer[subeventLoopCounter+subeventChunk] >> 16) & 0x1F;
-	      //dataADC3[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    
+	      dataADC3[thisChannel] = static_cast<int>(myEventContainer[subeventLoopCounter+subeventChunk] & 0xFFF);	    
 	    }
 
 	  }
@@ -275,6 +274,10 @@ namespace dqm4hep {
       dataVecADC3.assign(std::begin(dataADC3), std::end(dataADC3));
       dataVecAncl.assign(std::begin(dataAncl), std::end(dataAncl));
       dataVecTDC.assign( std::begin(dataTDC ), std::end(dataTDC ));
+
+      /*for (int i = 0; i < 32; i++) {
+	dqm_debug("Element {0} of the array is: {1}", i, dataADC2[i]);
+	}*/
 
       pGenericEvent->setValues("ADC0", dataVecADC0);
       pGenericEvent->setValues("ADC1", dataVecADC1);
