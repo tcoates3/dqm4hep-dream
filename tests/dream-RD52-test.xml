@@ -3,8 +3,8 @@
   <!-- Application settings -->
   <settings mode="EventReader">
     <parameter name="EnableStatistics"> true </parameter>
-    <parameter name="EventReader"> RD52FileReader </parameter>
-    <parameter name="EventFileName"> /lustre/scratch/epp/ilc/tc297/testbeamData/dream/cal/data/datafile_run10903_0.dat</parameter>
+    <parameter name="EventReader"> RD52NtupleReader </parameter>
+    <parameter name="EventFileName"> /lustre/scratch/epp/ilc/tc297/testbeamData/dream/cal/ntuples/datafile_ntup_run12508.root </parameter>
     <parameter name="CyclePeriod"> 1 </parameter>
     <parameter name="CycleCounter"> 0 </parameter>
     <parameter name="CycleTimeout"> 0 </parameter>
@@ -33,15 +33,45 @@
     <style theme="polar"/>
     <monitorElements>
 
+      <!-- Per-channel spectra-->
       <for id="channelNum" begin="0" end="71" increment="1">
-        <bookElement type="TH1I" path="/" name="SpectrumCh$FOR{channelNum}" title="Spectrum for channel $FOR{channelNum}" nBinsX="1000" minX="0" maxX="1000">
+        <bookElement type="TH1D" path="/" name="SpectrumCh$FOR{channelNum}" title="Spectrum for channel $FOR{channelNum}" nBinsX="1000" minX="0" maxX="1000">
         </bookElement>
       </for>
 
-      <for id="leakageNum" begin="0" end="15" increment="1">
-        <bookElement type="TH1I" path="/" name="Leakage$FOR{leakageNum}" title="Spectrum for Leakage $FOR{leakageNum}" nBinsX="1000" minX="0" maxX="1000">
+      <!-- Per-channel leakage spectra-->
+      <for id="leakageNum" begin="0" end="20" increment="1">
+        <bookElement type="TH1D" path="/" name="Leakage$FOR{leakageNum}" title="Spectrum for Leakage $FOR{leakageNum}" nBinsX="1000" minX="0" maxX="1000">
         </bookElement>
       </for>
+
+      <!-- Misc other data-->
+      <bookElement type="TH1D" path="/" name="IT" title="[IT?]" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="T3PSD" title="Preshower [?]" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="TC" title="" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="mu" title="Muon hit" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+
+      <!-- TDC data for the drift wire chamber-->
+      <bookElement type="TH1D" path="/" name="DWC1Left" title="DWC1 Left" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="DWC1Right" title="DWC1 Right" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="DWC1Up" title="DWC1 Up" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="DWC1Down" title="DWC1 Down" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="DWC2Left" title="DWC2 Left" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="DWC2Right" title="DWC2 Right" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="DWC2Up" title="DWC2 Up" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="DWC2Down" title="DWC2 Down" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
 
     </monitorElements>
   </storage>
