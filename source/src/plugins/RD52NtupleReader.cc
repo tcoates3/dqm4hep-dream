@@ -103,6 +103,7 @@ namespace dqm4hep {
 
     StatusCode RD52NtupleReader::skipNEvents(int nEvents) {
 
+      currentEventNumber += nEvents;
 
       return STATUS_CODE_SUCCESS;
     }
