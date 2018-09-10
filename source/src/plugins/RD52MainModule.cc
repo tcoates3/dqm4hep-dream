@@ -74,6 +74,9 @@ namespace dqm4hep {
       online::OnlineElementPtr m_pTC;
       online::OnlineElementPtr m_pMu;
 
+      online::OnlineElementPtr m_pR;
+      online::OnlineElementPtr m_pEvR;
+
     };
     
     //-------------------------------------------------------------------------------------------------
@@ -106,9 +109,12 @@ namespace dqm4hep {
       m_pDWC2Down  = online::ModuleApi::getMonitorElement(this, "/", "DWC2Down");
       
       m_pIT     = online::ModuleApi::getMonitorElement(this, "/", "IT");
-      m_pT3PSD = online::ModuleApi::getMonitorElement(this, "/", "T3PSD");
+      m_pT3PSD  = online::ModuleApi::getMonitorElement(this, "/", "T3PSD");
       m_pTC     = online::ModuleApi::getMonitorElement(this, "/", "TC");
       m_pMu     = online::ModuleApi::getMonitorElement(this, "/", "mu");
+
+      m_pR      = online::ModuleApi::getMonitorElement(this, "/", "R");
+      m_pEvR    = online::ModuleApi::getMonitorElement(this, "/", "EvR");
 
     }
     
@@ -157,6 +163,9 @@ namespace dqm4hep {
       std::vector<double> eventADC3;
       std::vector<double> eventADC4;
       std::vector<double> eventTDC;
+      std::vector<double> eventPedestalADC0;
+      std::vector<double> eventPedestalADC1;
+      std::vector<double> eventPedestalADC2;
       
       core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
       
@@ -166,27 +175,28 @@ namespace dqm4hep {
       pGenericEvent->getValues("ADC3", eventADC3);
       pGenericEvent->getValues("ADC4", eventADC4);
       pGenericEvent->getValues("TDC",  eventTDC);
-            
-      for (int i=0; i<32; i++) {
-	m_pChannelSpectra[i]->objectTo<TH1D>()->Fill(eventADC0[i]);
-      }
-      for (int i=0; i<32; i++) {
-	m_pChannelSpectra[32+i]->objectTo<TH1D>()->Fill(eventADC1[i]);
-      }
-      for (int i=0; i<8; i++) {
-	m_pChannelSpectra[32+32+i]->objectTo<TH1D>()->Fill(eventADC2[i]);
-      }
-            
-      int k = 0;
-      for (int i=16; i<32; i++) {
-	m_pLeakage[k]->objectTo<TH1D>()->Fill(eventADC3[i]);
-	k++;
-      }
+      pGenericEvent->getValues("pedestalADC0", eventPedestalADC0);
+      pGenericEvent->getValues("pedestalADC1", eventPedestalADC1);
+      pGenericEvent->getValues("pedestalADC2", eventPedestalADC2);
       
-      m_pLeakage[17]->objectTo<TH1D>()->Fill(eventADC4[0]);
-      m_pLeakage[18]->objectTo<TH1D>()->Fill(eventADC4[1]);
-      m_pLeakage[19]->objectTo<TH1D>()->Fill(eventADC4[2]);
-      m_pLeakage[20]->objectTo<TH1D>()->Fill(eventADC4[3]);
+      std::vector<double> eventAllADCs = eventADC0;
+      eventAllADCs.insert(std::end(eventAllADCs), std::begin(eventADC1), std::end(eventADC1));
+      eventAllADCs.insert(std::end(eventAllADCs), std::begin(eventADC2), std::begin(eventADC2) + 8);
+
+      std::vector<double> eventAllLeakage;
+      eventAllLeakage.insert(eventAllLeakage.begin(), eventADC3.begin()+16, eventADC3.end());
+      eventAllLeakage.insert(eventAllLeakage.end(), eventADC4.begin(), eventADC4.begin()+4);
+
+      std::vector<double> eventAllPedestalADCs = eventPedestalADC0;
+      eventAllPedestalADCs.insert(std::end(eventAllPedestalADCs), std::begin(eventPedestalADC1), std::end(eventPedestalADC1));
+      eventAllPedestalADCs.insert(std::end(eventAllPedestalADCs), std::begin(eventPedestalADC2), std::begin(eventPedestalADC2) + 8);
+
+      for (int i = 0; i < 71; i++) {
+	m_pChannelSpectra[i]->objectTo<TH1D>()->Fill(eventAllADCs[i] - eventAllPedestalADCs[i]);
+      }
+      for (int i = 0; i < 21; i++) {
+	m_pLeakage[i]->objectTo<TH1D>()->Fill(eventAllLeakage[i]);
+      }
 
       m_pIT->objectTo<TH1D>()->Fill(eventADC4[8]);
       m_pT3PSD->objectTo<TH1D>()->Fill(eventADC4[9]);
@@ -201,7 +211,33 @@ namespace dqm4hep {
       m_pDWC2Right->objectTo<TH1D>()->Fill(eventTDC[5]);
       m_pDWC2Up->objectTo<TH1D>()->Fill(eventTDC[6]);
       m_pDWC2Down->objectTo<TH1D>()->Fill(eventTDC[7]);
-      
+
+      // Total energy in the event
+      double totalADC = 0;
+      for (int i = 0; i < 72; i++) {
+	totalADC += eventAllADCs[i];
+      }
+
+      // Subtracting pedestals
+      for (int i = 0; i < 72; i++) {
+	eventAllADCs[i] = eventAllADCs[i]-eventAllPedestalADCs[i];
+      }
+
+      // Calculating R
+      std::sort(eventAllADCs.begin(), eventAllADCs.end());
+      std::reverse(eventAllADCs.begin(), eventAllADCs.end());
+      double highestChannel = eventAllADCs[0];
+      double tenHighestChannels = 0;
+      for (int i = 0; i < 9; i++) {
+	tenHighestChannels += eventAllADCs[i];
+      }
+
+      double energyRatio = highestChannel/tenHighestChannels;
+
+      m_pR->objectTo<TH1D>()->Fill(energyRatio);
+      dqm_debug("Total ADC: {0} / Energy ratio: {1}", totalADC, energyRatio);
+      m_pEvR->objectTo<TH2D>()->Fill(totalADC, energyRatio);
+	
     }
     
     DQM_PLUGIN_DECL(RD52MainModule, "RD52MainModule");

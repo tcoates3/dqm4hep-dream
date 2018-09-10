@@ -111,6 +111,8 @@ namespace dqm4hep {
 
     StatusCode RD52NtupleReader::runInfo(core::Run &run) {
 
+      run.setRunNumber(mainTree->GetBranch("Nrunnumber")->GetLeaf("Nrunnumber")->GetValue());
+
       return STATUS_CODE_SUCCESS;
     }
 
@@ -128,6 +130,9 @@ namespace dqm4hep {
 
       mainTree->GetEvent(currentEventNumber);
       dqm_debug("Event: {0}", currentEventNumber);
+
+      int eventTime = mainTree->GetBranch("TimeEvu")->GetLeaf("TimeEvu")->GetValue();
+      pEvent->setTimeStamp(dqm4hep::core::time::asPoint(eventTime));
 
       std::vector<double> vADC0;
       for (int i = 0; i < 32; i++) {
@@ -171,10 +176,33 @@ namespace dqm4hep {
       }
       pGenericEvent->setValues("TDC", vTDC);
 
+      std::vector<double> vPedestalADC0;
+      for (int i =  0; i < 32; i++) {
+	double dataValue = mainTree->GetBranch("PED_MEAN_ADCN0")->GetLeaf("PED_MEAN_ADCN0")->GetValue(i);
+	vPedestalADC0.push_back(dataValue);
+      }
+      pGenericEvent->setValues("pedestalADC0", vPedestalADC0);
+
+      std::vector<double> vPedestalADC1;
+      for (int i =  0; i < 32; i++) {
+	double dataValue = mainTree->GetBranch("PED_MEAN_ADCN1")->GetLeaf("PED_MEAN_ADCN1")->GetValue(i);
+	vPedestalADC1.push_back(dataValue);
+      }
+      pGenericEvent->setValues("pedestalADC1", vPedestalADC1);
+
+      std::vector<double> vPedestalADC2;
+      for (int i =  0; i < 32; i++) {
+	double dataValue = mainTree->GetBranch("PED_MEAN_ADCN2")->GetLeaf("PED_MEAN_ADCN2")->GetValue(i);
+	vPedestalADC2.push_back(dataValue);
+      }
+      pGenericEvent->setValues("pedestalADC2", vPedestalADC2);
+
+
       onEventRead().emit(pEvent);
       currentEventNumber++;
 
       return STATUS_CODE_SUCCESS;
+      
     }
 
     StatusCode RD52NtupleReader::close() {
