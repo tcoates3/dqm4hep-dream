@@ -73,6 +73,13 @@
       <bookElement type="TH1D" path="/" name="DWC2Down" title="DWC2 Down" nBinsX="1000" minX="0" maxX="1000">
       </bookElement>
 
+      <!-- Energy ratio plots -->
+      <bookElement type="TH1D" path="/" name="R" title="Energy ratio per event" nBinsX="500" minX="0" maxX="0.5">
+      </bookElement>
+
+      <bookElement type="TH2D" path="/" name="EvR" title="Energy per event vs. Energy ratio per event" nBinsX="100" minX="10000" maxX="20000" nBinsY="100" minY="0" maxY="0.7">
+      </bookElement>
+
     </monitorElements>
   </storage>
 
