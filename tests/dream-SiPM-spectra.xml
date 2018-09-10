@@ -16,7 +16,7 @@
   
   <!-- Archiver settings -->
   <archiver enable="true">
-    <parameter name="FileName" value="ArchiveSpectra.root"/>
+    <parameter name="FileName" value="sipm-spectra-dream-archive.root"/>
     <parameter name="OpenMode" value="RECREATE"/>
     <parameter name="AllowOverwrite" value="true"/>
     <parameter name="AppendRunNumber" value="false"/>
