@@ -39,6 +39,7 @@
 
 // -- root headers
 #include <TFile.h>
+#include <TBranch.h>
 #include <TTree.h>
 #include <TLeaf.h>
 
@@ -62,6 +63,11 @@ namespace dqm4hep {
       core::StatusCode runInfo(core::Run &run) override;
       core::StatusCode readNextEvent() override;
       core::StatusCode close() override;
+
+      int nEntries = -1;
+      int currentEventNumber = -1;
+      TFile *rootFile = new TFile;
+      TTree *mainTree = new TTree;
       
     };
     
@@ -76,7 +82,16 @@ namespace dqm4hep {
 
     StatusCode DriftChamberNtupleReader::open(const std::string &fname) {
       
-      //inputFile = fopen(fname.c_str(), "r");
+      rootFile = new TFile(fname.c_str());
+      mainTree = (TTree*)rootFile->Get("DREAM");
+
+      nEntries = mainTree->GetEntries();
+      if (nEntries == -1 ) {
+        dqm_error("Could not determine the numer of events in file {0}", fname);
+        return STATUS_CODE_FAILURE;
+      }
+
+      currentEventNumber = 0;
 
       return STATUS_CODE_SUCCESS;
     }
@@ -85,12 +100,16 @@ namespace dqm4hep {
 
     StatusCode DriftChamberNtupleReader::skipNEvents(int nEvents) {
 
+      currentEventNumber += nEvents;
+
       return STATUS_CODE_SUCCESS;
     }
 
     //-------------------------------------------------------------------------------------------------
 
     StatusCode DriftChamberNtupleReader::runInfo(core::Run &run) {
+
+      run.setRunNumber(mainTree->GetBranch("")->GetLeaf("")->GetValue());
 
       return STATUS_CODE_SUCCESS;
     }
@@ -99,8 +118,20 @@ namespace dqm4hep {
 
     StatusCode DriftChamberNtupleReader::readNextEvent() {
 
+      if (currentEventNumber == nEntries-1) {
+        dqm_info("Reached end of file");
+        return STATUS_CODE_OUT_OF_RANGE;
+      }
+
       EventPtr pEvent = GenericEvent::make_shared();
       GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
+
+      mainTree->GetEvent(currentEventNumber);
+      dqm_debug("Event: {0}", currentEventNumber);
+
+      //
+      // ...
+      //
 
       onEventRead().emit(pEvent);
 
@@ -108,6 +139,9 @@ namespace dqm4hep {
     }
 
     StatusCode DriftChamberNtupleReader::close() {
+
+      delete[] mainTree;
+      delete[] rootFile;
 
       return STATUS_CODE_SUCCESS;
     }

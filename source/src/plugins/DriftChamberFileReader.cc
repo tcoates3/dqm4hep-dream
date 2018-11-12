@@ -37,11 +37,7 @@
 #include <dqm4hep/PluginManager.h>
 #include <dqm4hep/XmlHelper.h>
 
-// -- root headers
-#include "TFile.h"
-#include "TTree.h"
-#include "TBranch.h"
-#include "TLeaf.h"
+#include <stdio.h>
 
 namespace dqm4hep {
 
@@ -64,10 +60,9 @@ namespace dqm4hep {
       core::StatusCode readNextEvent() override;
       core::StatusCode close() override;
       
-      int nEntries = -1;
-      int currentEventNum = -1;
-      TFile *rootFile = new TFile;
-      TTree *mainTree = new TTree;
+      FILE* inputFile  = 0;
+      uint8_t numberOfDevices;
+      int channelPDevice[10];
 
     };
     
@@ -81,18 +76,8 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     StatusCode DriftChamberFileReader::open(const std::string &fname) {
-      dqm_debug("Inside open()");
       
-      rootFile = new TFile(fname.c_str());
-      mainTree = (TTree*)rootFile->Get("DataTree");
-
-      nEntries = mainTree->GetEntries();
-      if (nEntries == -1) {
-	dqm_error("Could not determine the number of events in file {0}", fname);
-	return STATUS_CODE_FAILURE;
-      }
-      currentEventNum = 0;
-      mainTree->GetEvent(0);
+      inputFile = fopen(fname.c_str(), "r");
 
       return STATUS_CODE_SUCCESS;
     }
@@ -101,14 +86,26 @@ namespace dqm4hep {
 
     StatusCode DriftChamberFileReader::skipNEvents(int nEvents) {
 
-      currentEventNum += nEvents;
-
       return STATUS_CODE_SUCCESS;
     }
 
     //-------------------------------------------------------------------------------------------------
 
     StatusCode DriftChamberFileReader::runInfo(core::Run &run) {
+
+      uint32_t runNumber;
+      fread(&runNumber, sizeof(uint32_t), 1, inputFile);
+      run.setRunNumber(runNumber);
+
+      uint64_t startTime;
+      fread(&startTime, sizeof(uint64_t), 1, inputFile);
+      //run.setStartTime(core::time::asPoint(startTime));
+
+      fread(&numberOfDevices, sizeof(uint8_t), 1, inputFile);
+
+      run.setDetectorName("DREAM drift chamber");
+
+      fread(channelPDevice, sizeof(uint8_t), numberOfDevices, inputFile);
 
       return STATUS_CODE_SUCCESS;
     }
@@ -118,38 +115,55 @@ namespace dqm4hep {
     StatusCode DriftChamberFileReader::readNextEvent() {
       dqm_debug("Inside readNextEvent()");
 
-      if (currentEventNum == nEntries) {
-	dqm_info("Reached end of file");
-	return STATUS_CODE_OUT_OF_RANGE;
+      if (feof(inputFile)) {
+        dqm_warning("Reached end of file");
+        return STATUS_CODE_OUT_OF_RANGE;
       }
 
       EventPtr pEvent = GenericEvent::make_shared();
       GenericEvent *pGenericEvent = pEvent->getEvent<GenericEvent>();
 
-      // Seeking to the correct event
-      mainTree->GetEvent(currentEventNum);
+      uint32_t eventNumber;
+      bool validEvent = fread(&eventNumber, sizeof(uint32_t), 1, inputFile);
+      if (!validEvent) {
+	dqm_warning("Event did not have a valid event number, skipping...");
+	return STATUS_CODE_NOT_FOUND;
+      }
+      pEvent->setEventNumber(eventNumber);
+      //dqm_debug("Event number: {0}", eventNumber);
 
-      if ( (mainTree->GetBranch("event")->FindLeaf("event")->GetValue()-1) != currentEventNum) {
-	dqm_error("Event number mismatch");
-	return STATUS_CODE_FAILURE;
+      uint8_t *deviceIDs = new uint8_t[numberOfDevices];
+      fread(&deviceIDs, sizeof(uint8_t), numberOfDevices, inputFile);
+
+      uint8_t *deviceTypes = new uint8_t[numberOfDevices];
+      fread(&deviceTypes, sizeof(uint8_t), numberOfDevices, inputFile);
+
+      //dqm_debug("First device ID and type: {0} {1}", deviceIDs[0], deviceTypes[0]);
+
+      int channelNumber[34];
+      int channelData[34][1024];
+
+      for (int i = 0; i < numberOfDevices; i++) {
+	for (int k = 0; k < channelPDevice[i]; k++) {
+	  fread(&channelNumber[k], sizeof(uint16_t), 1, inputFile);
+	  
+	  fread(&channelData[k], sizeof(uint16_t), 1, inputFile);
+	}
       }
       
-      dqm_debug("File reader event number: {0}", currentEventNum);
-      dqm_debug("ROOT file event number:   {0}", mainTree->GetBranch("event")->FindLeaf("event")->GetValue());
-
-      //
-      // ...
-      // ... Extracting information goes here
-      // ...
-      //
+      //pGenericEvent->setValues();
 
       onEventRead().emit(pEvent);
-      currentEventNum++;
-
+      /*
+      delete[] deviceIDs;
+      delete[] deviceTypes;
+      */
       return STATUS_CODE_SUCCESS;
     }
 
     StatusCode DriftChamberFileReader::close() {
+
+      fclose(inputFile);
       
       return STATUS_CODE_SUCCESS;
     }
