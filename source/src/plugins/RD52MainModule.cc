@@ -69,13 +69,19 @@ namespace dqm4hep {
       online::OnlineElementPtr m_pDWC2Up;
       online::OnlineElementPtr m_pDWC2Down;
 
+      online::OnlineElementPtr m_pDWCMap;
+
       online::OnlineElementPtr m_pIT;
       online::OnlineElementPtr m_pT3PSD;
       online::OnlineElementPtr m_pTC;
       online::OnlineElementPtr m_pMu;
 
       online::OnlineElementPtr m_pR;
+      online::OnlineElementPtr m_pE;
       online::OnlineElementPtr m_pEvR;
+
+      online::OnlineElementPtr m_pHitmapScintillator;
+      online::OnlineElementPtr m_pHitmapCherenkov;
 
     };
     
@@ -91,30 +97,36 @@ namespace dqm4hep {
       
       for (int i=0; i<72; i++) {
         std::string meName = "SpectrumCh" + std::to_string(i);
-        m_pChannelSpectra.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
+        m_pChannelSpectra.push_back(online::ModuleApi::getMonitorElement(this, "/Spectra", meName));
       }
 
       for (int i=0; i<21; i++) {
         std::string meName = "Leakage" + std::to_string(i);
-        m_pLeakage.push_back(online::ModuleApi::getMonitorElement(this, "/", meName));
+        m_pLeakage.push_back(online::ModuleApi::getMonitorElement(this, "/Leakage", meName));
       }
 
-      m_pDWC1Left  = online::ModuleApi::getMonitorElement(this, "/", "DWC1Left");
-      m_pDWC1Right = online::ModuleApi::getMonitorElement(this, "/", "DWC1Right");
-      m_pDWC1Up    = online::ModuleApi::getMonitorElement(this, "/", "DWC1Up");
-      m_pDWC1Down  = online::ModuleApi::getMonitorElement(this, "/", "DWC1Down");
-      m_pDWC2Left  = online::ModuleApi::getMonitorElement(this, "/", "DWC2Left");
-      m_pDWC2Right = online::ModuleApi::getMonitorElement(this, "/", "DWC2Right");
-      m_pDWC2Up    = online::ModuleApi::getMonitorElement(this, "/", "DWC2Up");
-      m_pDWC2Down  = online::ModuleApi::getMonitorElement(this, "/", "DWC2Down");
-      
-      m_pIT     = online::ModuleApi::getMonitorElement(this, "/", "IT");
-      m_pT3PSD  = online::ModuleApi::getMonitorElement(this, "/", "T3PSD");
-      m_pTC     = online::ModuleApi::getMonitorElement(this, "/", "TC");
-      m_pMu     = online::ModuleApi::getMonitorElement(this, "/", "mu");
+      m_pDWC1Left  = online::ModuleApi::getMonitorElement(this, "/DWC", "DWC1Left");
+      m_pDWC1Right = online::ModuleApi::getMonitorElement(this, "/DWC", "DWC1Right");
+      m_pDWC1Up    = online::ModuleApi::getMonitorElement(this, "/DWC", "DWC1Up");
+      m_pDWC1Down  = online::ModuleApi::getMonitorElement(this, "/DWC", "DWC1Down");
+      m_pDWC2Left  = online::ModuleApi::getMonitorElement(this, "/DWC", "DWC2Left");
+      m_pDWC2Right = online::ModuleApi::getMonitorElement(this, "/DWC", "DWC2Right");
+      m_pDWC2Up    = online::ModuleApi::getMonitorElement(this, "/DWC", "DWC2Up");
+      m_pDWC2Down  = online::ModuleApi::getMonitorElement(this, "/DWC", "DWC2Down");
+
+      m_pDWCMap    = online::ModuleApi::getMonitorElement(this, "/DWC", "DWCMap");
+
+      m_pIT     = online::ModuleApi::getMonitorElement(this, "/Ancillary", "IT");
+      m_pT3PSD  = online::ModuleApi::getMonitorElement(this, "/Ancillary", "T3PSD");
+      m_pTC     = online::ModuleApi::getMonitorElement(this, "/Ancillary", "TC");
+      m_pMu     = online::ModuleApi::getMonitorElement(this, "/Ancillary", "mu");
 
       m_pR      = online::ModuleApi::getMonitorElement(this, "/", "R");
+      m_pE      = online::ModuleApi::getMonitorElement(this, "/", "E");
       m_pEvR    = online::ModuleApi::getMonitorElement(this, "/", "EvR");
+
+      m_pHitmapScintillator  = online::ModuleApi::getMonitorElement(this, "/Hitmaps", "ScintillatorLayer");
+      m_pHitmapCherenkov     = online::ModuleApi::getMonitorElement(this, "/Hitmaps", "CherenkovLayer");
 
     }
     
@@ -166,7 +178,14 @@ namespace dqm4hep {
       std::vector<double> eventPedestalADC0;
       std::vector<double> eventPedestalADC1;
       std::vector<double> eventPedestalADC2;
-      
+      std::vector<double> eventPedestalADC3;
+      std::vector<double> eventPedestalADC4;
+      std::vector<double> eventPedestalRMSADC0;
+      std::vector<double> eventPedestalRMSADC1;
+      std::vector<double> eventPedestalRMSADC2;
+      std::vector<double> eventPedestalRMSADC3;
+      std::vector<double> eventPedestalRMSADC4;
+       
       core::GenericEvent *pGenericEvent = pEvent->getEvent<core::GenericEvent>();
       
       pGenericEvent->getValues("ADC0", eventADC0);    
@@ -178,6 +197,13 @@ namespace dqm4hep {
       pGenericEvent->getValues("pedestalADC0", eventPedestalADC0);
       pGenericEvent->getValues("pedestalADC1", eventPedestalADC1);
       pGenericEvent->getValues("pedestalADC2", eventPedestalADC2);
+      pGenericEvent->getValues("pedestalADC3", eventPedestalADC3);
+      pGenericEvent->getValues("pedestalADC4", eventPedestalADC4);
+      pGenericEvent->getValues("pedestalRMSADC0", eventPedestalRMSADC0);
+      pGenericEvent->getValues("pedestalRMSADC1", eventPedestalRMSADC1);
+      pGenericEvent->getValues("pedestalRMSADC2", eventPedestalRMSADC2);
+      pGenericEvent->getValues("pedestalRMSADC3", eventPedestalRMSADC3);
+      pGenericEvent->getValues("pedestalRMSADC4", eventPedestalRMSADC4);
       
       std::vector<double> eventAllADCs = eventADC0;
       eventAllADCs.insert(std::end(eventAllADCs), std::begin(eventADC1), std::end(eventADC1));
@@ -191,17 +217,42 @@ namespace dqm4hep {
       eventAllPedestalADCs.insert(std::end(eventAllPedestalADCs), std::begin(eventPedestalADC1), std::end(eventPedestalADC1));
       eventAllPedestalADCs.insert(std::end(eventAllPedestalADCs), std::begin(eventPedestalADC2), std::begin(eventPedestalADC2) + 8);
 
+      std::vector<double> eventAllPedestalRMSADCs = eventPedestalRMSADC0;
+      eventAllPedestalRMSADCs.insert(std::end(eventAllPedestalRMSADCs), std::begin(eventPedestalRMSADC1), std::end(eventPedestalRMSADC1));
+      eventAllPedestalRMSADCs.insert(std::end(eventAllPedestalRMSADCs), std::begin(eventPedestalRMSADC2), std::begin(eventPedestalRMSADC2) + 8);
+      
       for (int i = 0; i < 71; i++) {
-	m_pChannelSpectra[i]->objectTo<TH1D>()->Fill(eventAllADCs[i] - eventAllPedestalADCs[i]);
+	double thisChannelPedestal = eventAllPedestalADCs[i] + 1.5*eventAllPedestalRMSADCs[i];
+	eventAllADCs[i] = eventAllADCs[i] - thisChannelPedestal;
+      }
+
+      for (int i = 0; i < 71; i++) {
+	m_pChannelSpectra[i]->objectTo<TH1D>()->Fill(eventAllADCs[i]);
       }
       for (int i = 0; i < 21; i++) {
 	m_pLeakage[i]->objectTo<TH1D>()->Fill(eventAllLeakage[i]);
       }
 
-      m_pIT->objectTo<TH1D>()->Fill(eventADC4[8]);
-      m_pT3PSD->objectTo<TH1D>()->Fill(eventADC4[9]);
-      m_pTC->objectTo<TH1D>()->Fill(eventADC4[10]);
-      m_pMu->objectTo<TH1D>()->Fill(eventADC4[11]);
+      //Ancillary and pedestals
+      double preshower = eventADC4[9];
+      double muonTrigger = eventADC4[11];
+      double IT = eventADC4[8];
+      double TC = eventADC4[10];
+   
+      double preshowerPedestalCut = eventPedestalADC4[9] + 1.5*eventPedestalRMSADC4[9];
+      double muonPedestalCut = eventPedestalADC4[11] + 1.5*eventPedestalRMSADC4[11];
+      double ITPedestalCut = eventPedestalADC4[8] + 1.5*eventPedestalRMSADC4[8];
+      double TCPedestalCut = eventPedestalADC4[10] + 1.5*eventPedestalRMSADC4[10];
+
+      // Booleans for the pedestals and cuts
+      bool isPreshowerEvent = (preshower > preshowerPedestalCut);
+      bool isMuonEvent = (muonTrigger > muonPedestalCut);
+
+      //Actual histograms for ancillary
+      m_pT3PSD->objectTo<TH1D>()->Fill(preshower);
+      m_pMu->objectTo<TH1D>()->Fill(muonTrigger);
+      m_pIT->objectTo<TH1D>()->Fill(IT);
+      m_pTC->objectTo<TH1D>()->Fill(TC);
 
       m_pDWC1Left->objectTo<TH1D>()->Fill(eventTDC[0]);
       m_pDWC1Right->objectTo<TH1D>()->Fill(eventTDC[1]);
@@ -212,15 +263,40 @@ namespace dqm4hep {
       m_pDWC2Up->objectTo<TH1D>()->Fill(eventTDC[6]);
       m_pDWC2Down->objectTo<TH1D>()->Fill(eventTDC[7]);
 
+      //Trying to make the 2D map of the DWC
+      m_pDWCMap->objectTo<TH2D>()->Fill(eventTDC[0], eventTDC[3]);
+
+      //Creating hitmap -- using RO mappings from 2012 testbeam
+      std::vector<double> channelADCsSc;
+      std::vector<double> channelADCsCh;
+
+      for (int i = 0; i < 71; i++) {
+	if (i % 2) {
+	  channelADCsCh.push_back(eventAllADCs[i] - eventAllPedestalADCs[i]);
+	}
+	else {
+	  channelADCsSc.push_back(eventAllADCs[i] - eventAllPedestalADCs[i]);
+	}
+      }
+      int channelNum = 0;
+      for (int i = 0; i < 6; i++) {
+	for (int j = 0; j < 6; j++) {
+	  m_pHitmapScintillator->objectTo<TH2D>()->Fill(i, j, channelADCsSc[channelNum]);
+	  channelNum++;
+	}
+      }
+      channelNum = 0;
+      for (int i = 0; i < 6; i++) {
+	for (int j = 0; j < 6; j++) {
+	  m_pHitmapCherenkov->objectTo<TH2D>()->Fill(i, j, channelADCsCh[channelNum]);
+	  channelNum++;
+	}
+      }
+
       // Total energy in the event
       double totalADC = 0;
       for (int i = 0; i < 72; i++) {
 	totalADC += eventAllADCs[i];
-      }
-
-      // Subtracting pedestals
-      for (int i = 0; i < 72; i++) {
-	eventAllADCs[i] = eventAllADCs[i]-eventAllPedestalADCs[i];
       }
 
       // Calculating R
@@ -233,10 +309,17 @@ namespace dqm4hep {
       }
 
       double energyRatio = highestChannel/tenHighestChannels;
-
+      m_pE->objectTo<TH1D>()->Fill(totalADC);
       m_pR->objectTo<TH1D>()->Fill(energyRatio);
+      /*if (isMuonEvent) {
+	m_pEvR->objectTo<TH2D>()->Fill(totalADC, energyRatio);
+	} */
+      bool e_totCut = (totalADC < 260);
+      bool rCut = (energyRatio > 0.62);
+      if (e_totCut and rCut and !isMuonEvent) {
+	m_pEvR->objectTo<TH2D>()->Fill(totalADC, energyRatio);
+      }
       dqm_debug("Total ADC: {0} / Energy ratio: {1}", totalADC, energyRatio);
-      m_pEvR->objectTo<TH2D>()->Fill(totalADC, energyRatio);
 	
     }
     

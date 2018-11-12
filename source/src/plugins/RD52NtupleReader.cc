@@ -151,21 +151,21 @@ namespace dqm4hep {
 
       std::vector<double> vADC2;
       for (int i = 0; i < 32; i++) {
-	double dataValue = mainTree->GetBranch("CHARGEADCN1")->GetLeaf("CHARGEADCN1")->GetValue(i);
+	double dataValue = mainTree->GetBranch("CHARGEADCN2")->GetLeaf("CHARGEADCN2")->GetValue(i);
 	vADC2.push_back(dataValue);
       }
       pGenericEvent->setValues("ADC2", vADC2);
 
       std::vector<double> vADC3;
       for (int i = 0; i < 32; i++) {
-	double dataValue = mainTree->GetBranch("CHARGEADCN1")->GetLeaf("CHARGEADCN1")->GetValue(i);
+	double dataValue = mainTree->GetBranch("CHARGEADCN3")->GetLeaf("CHARGEADCN3")->GetValue(i);
 	vADC3.push_back(dataValue);
       }
       pGenericEvent->setValues("ADC3", vADC3);
 
       std::vector<double> vADC4;
       for (int i = 0; i < 32; i++) {
-	double dataValue = mainTree->GetBranch("CHARGEADCN1")->GetLeaf("CHARGEADCN1")->GetValue(i);
+	double dataValue = mainTree->GetBranch("CHARGEADCN4")->GetLeaf("CHARGEADCN4")->GetValue(i);
 	vADC4.push_back(dataValue);
       }
       pGenericEvent->setValues("ADC4", vADC4);
@@ -178,26 +178,59 @@ namespace dqm4hep {
       pGenericEvent->setValues("TDC", vTDC);
 
       std::vector<double> vPedestalADC0;
+      std::vector<double> vPedestalRMSADC0;
       for (int i =  0; i < 32; i++) {
-	double dataValue = mainTree->GetBranch("PED_MEAN_ADCN0")->GetLeaf("PED_MEAN_ADCN0")->GetValue(i);
-	vPedestalADC0.push_back(dataValue);
+	double dataValueMean = mainTree->GetBranch("PED_MEAN_ADCN0")->GetLeaf("PED_MEAN_ADCN0")->GetValue(i);
+	vPedestalADC0.push_back(dataValueMean);
+	double dataValueRMS  = mainTree->GetBranch("PED_RMS_ADCN0")->GetLeaf("PED_RMS_ADCN0")->GetValue(i);
+	vPedestalRMSADC0.push_back(dataValueRMS);
       }
       pGenericEvent->setValues("pedestalADC0", vPedestalADC0);
+      pGenericEvent->setValues("pedestalRMSADC0", vPedestalRMSADC0);
 
       std::vector<double> vPedestalADC1;
+      std::vector<double> vPedestalRMSADC1;
       for (int i =  0; i < 32; i++) {
 	double dataValue = mainTree->GetBranch("PED_MEAN_ADCN1")->GetLeaf("PED_MEAN_ADCN1")->GetValue(i);
 	vPedestalADC1.push_back(dataValue);
+	double dataValueRMS  = mainTree->GetBranch("PED_RMS_ADCN1")->GetLeaf("PED_RMS_ADCN1")->GetValue(i);
+	vPedestalRMSADC1.push_back(dataValueRMS);
       }
       pGenericEvent->setValues("pedestalADC1", vPedestalADC1);
+      pGenericEvent->setValues("pedestalRMSADC1", vPedestalRMSADC1);
 
       std::vector<double> vPedestalADC2;
+      std::vector<double> vPedestalRMSADC2;
       for (int i =  0; i < 32; i++) {
 	double dataValue = mainTree->GetBranch("PED_MEAN_ADCN2")->GetLeaf("PED_MEAN_ADCN2")->GetValue(i);
 	vPedestalADC2.push_back(dataValue);
+	double dataValueRMS  = mainTree->GetBranch("PED_RMS_ADCN2")->GetLeaf("PED_RMS_ADCN2")->GetValue(i);
+	vPedestalRMSADC2.push_back(dataValueRMS);
       }
       pGenericEvent->setValues("pedestalADC2", vPedestalADC2);
+      pGenericEvent->setValues("pedestalRMSADC2", vPedestalRMSADC2);
 
+      std::vector<double> vPedestalADC3;
+      std::vector<double> vPedestalRMSADC3;
+      for (int i =  0; i < 32; i++) {
+	double dataValue = mainTree->GetBranch("PED_MEAN_ADCN3")->GetLeaf("PED_MEAN_ADCN3")->GetValue(i);
+	vPedestalADC3.push_back(dataValue);
+	double dataValueRMS  = mainTree->GetBranch("PED_RMS_ADCN3")->GetLeaf("PED_RMS_ADCN3")->GetValue(i);
+	vPedestalRMSADC3.push_back(dataValueRMS);
+      }
+      pGenericEvent->setValues("pedestalADC3", vPedestalADC3);
+      pGenericEvent->setValues("pedestalRMSADC3", vPedestalRMSADC3);
+
+      std::vector<double> vPedestalADC4;
+      std::vector<double> vPedestalRMSADC4;
+      for (int i =  0; i < 32; i++) {
+	double dataValue = mainTree->GetBranch("PED_MEAN_ADCN4")->GetLeaf("PED_MEAN_ADCN4")->GetValue(i);
+	vPedestalADC4.push_back(dataValue);
+	double dataValueRMS  = mainTree->GetBranch("PED_RMS_ADCN4")->GetLeaf("PED_RMS_ADCN4")->GetValue(i);
+	vPedestalRMSADC4.push_back(dataValueRMS);
+      }
+      pGenericEvent->setValues("pedestalADC4", vPedestalADC4);
+      pGenericEvent->setValues("pedestalRMSADC4", vPedestalRMSADC4);
 
       onEventRead().emit(pEvent);
       currentEventNumber++;
@@ -208,8 +241,8 @@ namespace dqm4hep {
 
     StatusCode RD52NtupleReader::close() {
 
-      delete[] rootFile;
       delete[] mainTree;
+      delete[] rootFile;
             
       return STATUS_CODE_SUCCESS;
     }
