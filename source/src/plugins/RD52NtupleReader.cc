@@ -132,6 +132,11 @@ namespace dqm4hep {
       mainTree->GetEvent(currentEventNumber);
       dqm_debug("Event: {0}", currentEventNumber);
 
+      double dRunNumber = mainTree->GetBranch("Nrunnumber")->GetLeaf("Nrunnumber")->GetValue();
+      int iRunNumber = (int)dRunNumber;
+      dqm_debug("Run: {0}", iRunNumber);
+      pEvent->setRunNumber(iRunNumber);
+
       int eventTime = mainTree->GetBranch("TimeEvu")->GetLeaf("TimeEvu")->GetValue();
       pEvent->setTimeStamp(dqm4hep::core::time::asPoint(eventTime));
 
