@@ -83,11 +83,32 @@ namespace dqm4hep {
       online::OnlineElementPtr m_pE;
       online::OnlineElementPtr m_pEvR;
 
+      online::OnlineElementPtr m_pTotalESc;
+      online::OnlineElementPtr m_pTotalECh;
+
       online::OnlineElementPtr m_pHitmapScintillator;
       online::OnlineElementPtr m_pHitmapCherenkov;
 
       online::OnlineElementPtr m_pTowerPlotSc;
+      online::OnlineElementPtr m_pTowerPlotScMean;
+      online::OnlineElementPtr m_pTowerPlotSc_Cal;
+      online::OnlineElementPtr m_pTowerPlotScMean_Cal;
+
+      /*
+      online::OnlineElementPtr m_pTowerPlotSc;
       online::OnlineElementPtr m_pTowerPlotCh;
+
+      online::OnlineElementPtr m_pTowerPlotScPion;
+      online::OnlineElementPtr m_pTowerPlotChPion;
+
+      online::OnlineElementPtr m_pTowerPlotScMuon;
+      online::OnlineElementPtr m_pTowerPlotChMuon;
+
+      online::OnlineElementPtr m_ptowerPlotMeanSc;
+      online::OnlineElementPtr m_ptowerPlotMeanCh;
+      */
+
+      int towerNumber;
 
     };
     
@@ -132,12 +153,30 @@ namespace dqm4hep {
       m_pE      = online::ModuleApi::getMonitorElement(this, "/", "E");
       m_pEvR    = online::ModuleApi::getMonitorElement(this, "/", "EvR");
 
+      m_pTotalESc    = online::ModuleApi::getMonitorElement(this, "/", "TotalEnergyScintillator");
+      m_pTotalECh    = online::ModuleApi::getMonitorElement(this, "/", "TotalEnergyCherenkov");
+
       m_pHitmapScintillator  = online::ModuleApi::getMonitorElement(this, "/Hitmaps", "ScintillatorLayer");
       m_pHitmapCherenkov     = online::ModuleApi::getMonitorElement(this, "/Hitmaps", "CherenkovLayer");
 
+      m_pTowerPlotSc         = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotSc");
+      m_pTowerPlotScMean     = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScMean");
+      m_pTowerPlotSc_Cal     = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotSc_Cal");
+      m_pTowerPlotScMean_Cal = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScMean_Cal");
+
+      /*
       m_pTowerPlotSc = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotSc");
       m_pTowerPlotCh = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotCh");
 
+      m_pTowerPlotScPion = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScPion");
+      m_pTowerPlotChPion = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotChPion");
+
+      m_pTowerPlotScMuon = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScMuon");
+      m_pTowerPlotChMuon = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotChMuon");
+
+      m_ptowerPlotMeanSc = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotMeanSc");
+      m_ptowerPlotMeanCh = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotMeanCh");
+      */
     }
     
     //-------------------------------------------------------------------------------------------------
@@ -162,6 +201,19 @@ namespace dqm4hep {
     
     void RD52MainModule::endOfRun(const core::Run &/*run*/) {
 
+      // We can also do the same with m_pTotalADCCh and m_pTotalADCSc, and with m_pE which is the histogram of total energy
+
+      TF2 *f2 = new TF2("f2", "xygaus", 0, 36, 0, 50);
+      /*
+      m_pTowerPlotSc->objectTo<TH2D>()->Fit("f2");
+      m_pTowerPlotSc_Cal->objectTo<TH2D>()->Fit("f2");
+
+      double towerMeanSc = m_pTowerPlotSc->objectTo<TH2D>()->GetFunction("f2")->GetParameter(3); // 3 gets MeanY
+      double towerMeanSc_Cal = m_pTowerPlotSc_Cal->objectTo<TH2D>()->GetFunction("f2")->GetParameter(3);
+
+      m_pTowerPlotScMean->objectTo<TGraph>()->SetPoint(towerNumber, towerNumber, towerMeanSc);
+      m_pTowerPlotScMean_Cal->objectTo<TGraph>()->SetPoint(towerNumber, towerNumber, towerMeanSc_Cal);
+      */
     }
     
     //-------------------------------------------------------------------------------------------------
@@ -173,7 +225,7 @@ namespace dqm4hep {
     //-------------------------------------------------------------------------------------------------
 
     void RD52MainModule::process(core::EventPtr pEvent) {
-
+      
       if (nullptr == pEvent) {
 	dqm_warning("Event pointer is invalid - skipping this event");
 	return;
@@ -231,6 +283,8 @@ namespace dqm4hep {
       eventAllPedestalRMSADCs.insert(std::end(eventAllPedestalRMSADCs), std::begin(eventPedestalRMSADC1), std::end(eventPedestalRMSADC1));
       eventAllPedestalRMSADCs.insert(std::end(eventAllPedestalRMSADCs), std::begin(eventPedestalRMSADC2), std::begin(eventPedestalRMSADC2) + 8);
 
+      std::vector<double> eventAllADCsRaw = eventAllADCs;
+
       for (int i = 0; i < 72; i++) {
 	double thisChannelPedestal = eventAllPedestalADCs[i] + 1.5*eventAllPedestalRMSADCs[i];
 	eventAllADCs[i] = eventAllADCs[i] - thisChannelPedestal;
@@ -238,6 +292,7 @@ namespace dqm4hep {
       
       for (int i = 0; i < 72; i++) {
 	m_pChannelSpectra[i]->objectTo<TH1D>()->Fill(eventAllADCs[i]);
+	//m_pChannelSpectra[i]->objectTo<TH1D>()->Fill(eventAllADCsRaw[i]);
       }
       for (int i = 0; i < 21; i++) {
 	m_pLeakage[i]->objectTo<TH1D>()->Fill(eventAllLeakage[i]);
@@ -257,6 +312,10 @@ namespace dqm4hep {
       // Booleans for the pedestals and cuts
       bool isPreshowerEvent = (preshower > preshowerPedestalCut);
       bool isMuonEvent = (muonTrigger > muonPedestalCut);
+
+      // Pedestal-subtracted preshower and muon
+      double preshowerADC = preshower - preshowerPedestalCut;
+      double muonADC = muonTrigger - muonPedestalCut;
 
       //Actual histograms for ancillary
       m_pT3PSD->objectTo<TH1D>()->Fill(preshower);
@@ -316,13 +375,29 @@ namespace dqm4hep {
 	totalADC += eventAllADCs[i];
       }
 
+      // Total energy in scintillator and Cherenkov detectors
+      double totalADCSc = 0;
+      double totalADCCh = 0;
+      for (int i = 0; i < 72; i++) {
+	if (i % 2) {
+	  totalADCCh += eventAllADCs[i];
+	}
+	else {
+	  totalADCSc += eventAllADCs[i];
+	}
+      }
+      m_pTotalESc->objectTo<TH1D>()->Fill(totalADCSc);
+      m_pTotalECh->objectTo<TH1D>()->Fill(totalADCCh);
+
       // Calculating R
-      std::sort(eventAllADCs.begin(), eventAllADCs.end());
-      std::reverse(eventAllADCs.begin(), eventAllADCs.end());
-      double highestChannel = eventAllADCs[0];
+      std::vector<double> eventAllADCsSorted = eventAllADCs;
+      
+      std::sort(eventAllADCsSorted.begin(), eventAllADCsSorted.end());
+      std::reverse(eventAllADCsSorted.begin(), eventAllADCsSorted.end());
+      double highestChannel = eventAllADCsSorted[0];
       double tenHighestChannels = 0;
       for (int i = 0; i < 9; i++) {
-	tenHighestChannels += eventAllADCs[i];
+	tenHighestChannels += eventAllADCsSorted[i];
       }
 
       double energyRatio = highestChannel/tenHighestChannels;
@@ -417,88 +492,46 @@ namespace dqm4hep {
       umTowerToChannel[35] = 64; // ADC2-00
       umTowerToChannel[36] = 66; // ADC2-02
 
-      //double calibrationMapSc[29];
       std::array<double,36> calibrationMapSc;
-      calibrationMapSc[1]  = 0.7170;
-      calibrationMapSc[2]  = 0.2672;
-      calibrationMapSc[3]  = 0.6390;
-      calibrationMapSc[4]  = 0.5212;
-      calibrationMapSc[5]  = 1.2128;
-      calibrationMapSc[6]  = 1.3742;
-      calibrationMapSc[7]  = 0.0295;
-      calibrationMapSc[8]  = 0.1097;
-      calibrationMapSc[9]  = 0.3363;
-      calibrationMapSc[10] = 0.2726;
-      calibrationMapSc[11] = 0.5246;
-      calibrationMapSc[12] = 0.7593;
-      calibrationMapSc[13] = 2.2633;
-      calibrationMapSc[14] = 1.1689;
+      calibrationMapSc[1]  = 0.4551;
+      calibrationMapSc[2]  = 0.4450;
+      calibrationMapSc[3]  = 0.5842;
+      calibrationMapSc[4]  = 0.5008;
+      calibrationMapSc[5]  = 0.4417;
+      calibrationMapSc[6]  = 0.4845;
+      calibrationMapSc[7]  = 0.6026;
+      calibrationMapSc[8]  = 0.7617;
+      calibrationMapSc[9]  = 0.6953;
+      calibrationMapSc[10] = 0.7729;
+      calibrationMapSc[11] = 0.4607;
+      calibrationMapSc[12] = 0.5040;
+      calibrationMapSc[13] = 0.5203;
+      calibrationMapSc[14] = 1.0561;
       calibrationMapSc[15] = 1.0;    // By definition, as this is what we are calibrating to
-      calibrationMapSc[16] = 0.7927;
-      calibrationMapSc[17] = 1.5565;
-      calibrationMapSc[18] = 2.2579;
-      calibrationMapSc[19] = 1.3906;
-      calibrationMapSc[20] = 0.9245;
-      calibrationMapSc[21] = 0.8008;
-      calibrationMapSc[22] = 0.8429;
-      calibrationMapSc[23] = 1.1692;
-      calibrationMapSc[24] = 2.4680;
-      calibrationMapSc[25] = 16.0664;
-      calibrationMapSc[26] = 5.9318;
-      calibrationMapSc[27] = 14.0613;
-      calibrationMapSc[28] = 7.5256;
-      calibrationMapSc[29] = 0.0152;
+      calibrationMapSc[16] = 0.7488;
+      calibrationMapSc[17] = 0.9609;
+      calibrationMapSc[18] = 0.7315;
+      calibrationMapSc[19] = 0.5163;
+      calibrationMapSc[20] = 1.5273;
+      calibrationMapSc[21] = 0.9764;
+      calibrationMapSc[22] = 0.7652;
+      calibrationMapSc[23] = 0.7056;
+      calibrationMapSc[24] = 0.6210;
+      calibrationMapSc[25] = 0.4735;
+      calibrationMapSc[26] = 0.4278;
+      calibrationMapSc[27] = 0.4738;
+      calibrationMapSc[28] = 0.5690;
+      calibrationMapSc[29] = 0.4405;
 
-      calibrationMapSc[30] = 1.0;
-      calibrationMapSc[31] = 1.0;
-      calibrationMapSc[32] = 1.0;
-      calibrationMapSc[33] = 1.0;
-      calibrationMapSc[34] = 1.0;
-      calibrationMapSc[35] = 1.0;
+      /*
+      calibrationMapSc[30] = 0.4572;
+      calibrationMapSc[31] = 3.3256;
+      calibrationMapSc[32] = 1.7073;
+      calibrationMapSc[33] = 2.0475;
+      calibrationMapSc[34] = 2.7585;
+      calibrationMapSc[35] = 0.5324;
       calibrationMapSc[36] = 1.0;
-
-      std::array<double, 36> calibrationMapCh;
-      //calibrationMapCh= calibrationMapSc;
-      //calibrationMapCh[7]  = 0.10;
-      //calibrationMapCh[16] = 10.0;
-      
-      calibrationMapCh[1]  = 0.7786;
-      calibrationMapCh[2]  = 0.3204;
-      calibrationMapCh[3]  = 0.6722;
-      calibrationMapCh[4]  = 0.5621;
-      calibrationMapCh[5]  = 1.2365;
-      calibrationMapCh[6]  = 1.4109;
-      calibrationMapCh[7]  = 0.1953;
-      calibrationMapCh[8]  = 0.1495;
-      calibrationMapCh[9]  = 0.3540;
-      calibrationMapCh[10] = 0.2907;
-      calibrationMapCh[11] = 0.5384;
-      calibrationMapCh[12] = 0.7767;
-      calibrationMapCh[13] = 2.2939;
-      calibrationMapCh[14] = 1.784;
-      calibrationMapCh[15] = 1.0;
-      calibrationMapCh[16] = 9.8418;
-      calibrationMapCh[17] = 1.5875;
-      calibrationMapCh[18] = 2.3452;
-      calibrationMapCh[19] = 1.4135;
-      calibrationMapCh[20] = 0.9308;
-      calibrationMapCh[21] = 0.7984;
-      calibrationMapCh[22] = 0.8439;
-      calibrationMapCh[23] = 1.1883;
-      calibrationMapCh[24] = 2.5620;
-      calibrationMapCh[25] = 16.8354;
-      calibrationMapCh[26] = 6.3750;
-      calibrationMapCh[27] = 16.2638;
-      calibrationMapCh[28] = 8.6333;
-      calibrationMapCh[29] = 1.0;  // No data for this yet
-
-      calibrationMapCh[30] = 1.0;
-      calibrationMapCh[31] = 1.0;
-      calibrationMapCh[32] = 1.0;
-      calibrationMapCh[33] = 1.0;
-      calibrationMapCh[34] = 1.0;
-      calibrationMapCh[35] = 1.0;
-      calibrationMapCh[36] = 1.0;
+      */
 
       int runNumber = pEvent->getRunNumber();
       int eventNumber = pEvent->getEventNumber();
@@ -509,7 +542,7 @@ namespace dqm4hep {
       }
 
       if (true) {
-	int towerNumber = umTowerMap.find(runNumber)->second;
+	towerNumber = umTowerMap.find(runNumber)->second;
 	int channelNumber = umTowerToChannel.find(towerNumber)->second;
 	double towerADCSc = eventAllADCs[channelNumber];
 	double towerADCCh = eventAllADCs[channelNumber+1];
@@ -518,7 +551,6 @@ namespace dqm4hep {
 	if (towerNumber == 7) {
 	  double thisChannelPedestal = eventPedestalADC2[8] + 1.5*eventPedestalRMSADC2[8];
 	  towerADCSc = eventADC2[8] - thisChannelPedestal;
-	  
 	}
 	if (towerNumber == 16) {
 	  double thisChannelPedestal = eventPedestalADC2[9] + 1.5*eventPedestalRMSADC2[9];
@@ -530,15 +562,27 @@ namespace dqm4hep {
 	  towerADCSc = eventADC2[6] - thisChannelPedestal;
 	}
 
+	/*
 	if ((towerNumber == 30) or (towerNumber == 35) or (towerNumber == 36))  {
 	  towerADCSc = (-1.0)*towerADCSc;
 	  towerADCCh = (-1.0)*towerADCCh;
 	}
+	*/
 
-	//m_pTowerPlotSc->objectTo<TH2D>()->Fill(towerNumber, towerADCSc);
-	//m_pTowerPlotCh->objectTo<TH2D>()->Fill(towerNumber, towerADCCh);
-	m_pTowerPlotSc->objectTo<TH2D>()->Fill(towerNumber, towerADCSc*calibrationMapSc[towerNumber]);
-	m_pTowerPlotCh->objectTo<TH2D>()->Fill(towerNumber, towerADCCh*calibrationMapCh[towerNumber]);
+	m_pTowerPlotSc->objectTo<TH2D>()->Fill(towerNumber, towerADCSc);
+	m_pTowerPlotSc_Cal->objectTo<TH2D>()->Fill(towerNumber, towerADCSc*calibrationMapSc[towerNumber]);
+
+	/*
+	if ( (isMuonEvent == true) && ((preshowerADC<20) && (muonADC>10)) ) {
+	  m_pTowerPlotScMuon->objectTo<TH2D>()->Fill(towerNumber, towerADCSc*calibrationMapSc[towerNumber]);
+	  m_pTowerPlotChMuon->objectTo<TH2D>()->Fill(towerNumber, towerADCCh*calibrationMapCh[towerNumber]);
+	}
+	if ( (isMuonEvent == false) && ((preshowerADC<20) && (muonADC<5)) ) {
+	  m_pTowerPlotScPion->objectTo<TH2D>()->Fill(towerNumber, towerADCSc*calibrationMapSc[towerNumber]);
+	  m_pTowerPlotChPion->objectTo<TH2D>()->Fill(towerNumber, towerADCCh*calibrationMapCh[towerNumber]);
+	}
+	*/
+
       }
 
       // This section below should probably be moved, since it will be skipped if we're using a non-calibration run
