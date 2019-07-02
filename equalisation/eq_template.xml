@@ -1,0 +1,121 @@
+ <dqm4hep>
+  
+  <!-- Application settings -->
+  <settings mode="EventReader">
+    <parameter name="EnableStatistics"> true </parameter>
+    <parameter name="EventReader"> RD52NtupleReader </parameter>
+    <parameter name="EventFileName"> /lustre/scratch/epp/ilc/tc297/testbeamData/dream/CERNTestbeamSept2018/calorimeterRD52/ntuple/datafile_ntup_runXXXXX.root </parameter>
+    <parameter name="CyclePeriod"> 1 </parameter>
+    <parameter name="CycleCounter"> 0 </parameter>
+    <parameter name="CycleTimeout"> 0 </parameter>
+    <parameter name="RunControl"> TestRC </parameter>
+    <parameter name="EventCollector"> TestEventCollector </parameter>
+    <parameter name="EventSource"> TestSource </parameter>
+    <parameter name="MonitorElementCollector"> TestMeCollector </parameter>
+  </settings>
+
+  <!-- Archiver settings -->
+  <archiver enable="true">
+    <parameter name="FileName" value="archive-XXXXX.root"/>
+    <parameter name="OpenMode" value="RECREATE"/>
+    <parameter name="AllowOverwrite" value="true"/>
+    <parameter name="AppendRunNumber" value="false"/>
+    <selectors>
+      <selector regex=".*" select="true"/>
+    </selectors>    
+  </archiver>
+  
+  <!-- The analysis module goes here -->
+  <module type="RD52MainModule" name="myRD52MainModule"/>
+
+  <!-- Monitor elements in the <storage> tag -->
+  <storage>
+    <style theme="polar"/>
+    <monitorElements>
+
+      <!-- Per-channel spectra-->
+      <for id="channelNum" begin="0" end="71" increment="1">
+        <bookElement type="TH1D" path="/Spectra" name="SpectrumCh$FOR{channelNum}" title="Spectrum for channel $FOR{channelNum}" nBinsX="750" minX="0" maxX="750">
+        </bookElement>
+      </for>
+
+      <!-- Per-channel leakage spectra-->
+      <for id="leakageNum" begin="0" end="20" increment="1">
+        <bookElement type="TH1D" path="/Leakage/" name="Leakage$FOR{leakageNum}" title="Spectrum for Leakage $FOR{leakageNum}" nBinsX="1000" minX="0" maxX="1000">
+        </bookElement>
+      </for>
+
+      <!-- Misc other data-->
+      <bookElement type="TH1D" path="/Ancillary" name="IT" title="[IT?]" nBinsX="300" minX="0" maxX="300">
+      </bookElement>
+      <bookElement type="TH1D" path="/Ancillary" name="T3PSD" title="Preshower" nBinsX="1000" minX="0" maxX="1000">
+      </bookElement>
+      <bookElement type="TH1D" path="/Ancillary" name="TC" title="" nBinsX="500" minX="0" maxX="500">
+      </bookElement>
+      <bookElement type="TH1D" path="/Ancillary" name="mu" title="Muon hit" nBinsX="500" minX="0" maxX="500">
+      </bookElement>
+
+      <!-- TDC data for the drift wire chamber-->
+      <bookElement type="TH1D" path="/DWC" name="DWC1Left" title="DWC1 Left" nBinsX="2000" minX="0" maxX="2000">
+      </bookElement>
+      <bookElement type="TH1D" path="/DWC" name="DWC1Right" title="DWC1 Right" nBinsX="2000" minX="0" maxX="2000">
+      </bookElement>
+      <bookElement type="TH1D" path="/DWC" name="DWC1Up" title="DWC1 Up" nBinsX="2000" minX="0" maxX="2000">
+      </bookElement>
+      <bookElement type="TH1D" path="/DWC" name="DWC1Down" title="DWC1 Down" nBinsX="2000" minX="0" maxX="2000">
+      </bookElement>
+      <bookElement type="TH1D" path="/DWC" name="DWC2Left" title="DWC2 Left" nBinsX="2000" minX="0" maxX="2000">
+      </bookElement>
+      <bookElement type="TH1D" path="/DWC" name="DWC2Right" title="DWC2 Right" nBinsX="2000" minX="0" maxX="2000">
+      </bookElement>
+      <bookElement type="TH1D" path="/DWC" name="DWC2Up" title="DWC2 Up" nBinsX="2000" minX="0" maxX="2000">
+      </bookElement>
+      <bookElement type="TH1D" path="/DWC" name="DWC2Down" title="DWC2 Down" nBinsX="2000" minX="0" maxX="2000">
+      </bookElement>
+
+      <bookElement type="TH2D" path="/DWC" name="DWCMap1" title="DWC Map 1" nBinsX="20" minX="-1000" maxX="1000" nBinsY="20" minY="-1000" maxY="1000">
+      </bookElement>
+      <bookElement type="TH2D" path="/DWC" name="DWCMap2" title="DWC Map 2" nBinsX="20" minX="-1000" maxX="1000" nBinsY="20" minY="-1000" maxY="1000">
+      </bookElement>
+      
+
+      <!-- Energy ratio plots -->
+      <bookElement type="TH1D" path="/" name="R" title="Energy ratio per event" nBinsX="100" minX="0" maxX="1.0">
+      </bookElement>
+
+      <bookElement type="TH1D" path="/" name="E" title="Total Energy" nBinsX="150" minX="0" maxX="600">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="TotalEnergyCherenkov" title="Total Energy (Cherenkov)" nBinsX="150" minX="0" maxX="600">
+      </bookElement>
+      <bookElement type="TH1D" path="/" name="TotalEnergyScintillator" title="Total Energy (Scintillators)" nBinsX="150" minX="0" maxX="600">
+      </bookElement>
+
+      <bookElement type="TH2D" path="/" name="EvR" title="Energy per event vs. Energy ratio per event" nBinsX="100" minX="0" maxX="4000" nBinsY="100" minY="0" maxY="1.0">
+      </bookElement>
+
+
+      <!-- Hitmaps -->
+      <bookElement type="TH2D" path="/Hitmaps" name="ScintillatorLayer" title="Hitmap (Scintillator)" nBinsX="6" minX="0" maxX="6" nBinsY="6" minY="0" maxY="6">
+      </bookElement>
+
+      <bookElement type="TH2D" path="/Hitmaps" name="CherenkovLayer" title="Hitmap (Cherenkov)" nBinsX="6" minX="0" maxX="6" nBinsY="6" minY="0" maxY="6">
+      </bookElement>
+
+      <!-- Equalisiation plots -->
+      <bookElement type="TH2D" path="/" name="TowerPlotSc" title="Scintillator ADC by Tower" nBinsX="40" minX="0" maxX="40" nBinsY="30" minY="0" maxY="600">
+      </bookElement>
+
+      <bookElement type="TGraph" path="/" name="TowerPlotScMean" title="Mean scintillator ADC by Tower" minX="0" maxX="40" minY="0" maxY="600">
+      </bookElement>
+
+      <bookElement type="TH2D" path="/" name="TowerPlotSc_Cal" title="Scintillator ADC by Tower (calibrated)" nBinsX="40" minX="0" maxX="40" nBinsY="30" minY="0" maxY="600">
+      </bookElement>
+
+      <bookElement type="TGraph" path="/" name="TowerPlotScMean_Cal" title="Mean scintillator ADC by Tower (calibrated)" minX="0" maxX="40" minY="0" maxY="600">
+      </bookElement>
+
+
+    </monitorElements>
+  </storage>
+
+</dqm4hep>
