@@ -1,0 +1,9 @@
+
+So we've separated the cherenkov and scintillator total energy spectra. We can then make a direct analogy here to the beam energy, which is 20 GeV, and do some nice looking fits to make it look convincing.
+
+Then we need to do the calibration still. We've got most of the coefficients done at a dumb level, along with a basic separation into muons and pions for the 80 GeV runs. What we need to do next is take a look at what the levelling of these are. Maybe for this we should make a histogram of the *averages*, rather than the entire spread. Either that, or the total ADC count for only the tower under the beamspot.
+
+Should really equalise via this process:
+  1. Find per-channel scintillator averages of muon data in 80GeV pion runs
+  2. Determine equalisation coefficients with this data
+  3. Apply these equalisation coefficients to muon data and pion data

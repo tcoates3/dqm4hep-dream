@@ -3,8 +3,8 @@
   <!-- Application settings -->
   <settings mode="EventReader">
     <parameter name="EnableStatistics"> true </parameter>
-    <parameter name="EventReader"> DriftChamberFileReader </parameter>
-    <parameter name="EventFileName"> /lustre/scratch/epp/ilc/tc297/testbeamData/dream/drift/dch_run_59.dat </parameter>
+    <parameter name="EventReader"> RD52NtupleReader </parameter>
+    <parameter name="EventFileName"> /lustre/scratch/epp/ilc/tc297/testbeamData/dream/CERNTestbeamSept2018/calorimeterRD52/ntuple/datafile_ntup_run12727.root </parameter>
     <parameter name="CyclePeriod"> 1 </parameter>
     <parameter name="CycleCounter"> 0 </parameter>
     <parameter name="CycleTimeout"> 0 </parameter>
@@ -13,10 +13,11 @@
     <parameter name="EventSource"> TestSource </parameter>
     <parameter name="MonitorElementCollector"> TestMeCollector </parameter>
   </settings>
-  
+
   <!-- Archiver settings -->
   <archiver enable="true">
-    <parameter name="FileName" value="drift-dream-archive.root"/>
+<!--<parameter name="FileName" value="RD52-dream-archive.root"/> -->
+    <parameter name="FileName" value="archive-12727.root"/>
     <parameter name="OpenMode" value="RECREATE"/>
     <parameter name="AllowOverwrite" value="true"/>
     <parameter name="AppendRunNumber" value="false"/>
@@ -26,14 +27,25 @@
   </archiver>
   
   <!-- The analysis module goes here -->
-  <module type="DriftChamberDummyModule" name="myDriftChamberDummyModule"/>
+  <module type="SimpleModule" name="mySimpleModule"/>
 
   <!-- Monitor elements in the <storage> tag -->
   <storage>
-    <style theme="polar"/>
     <monitorElements>
-      <bookElement type="TH2I" path="/" name="HitmapDummy" title="A dummy hitmap" nBinsX="8" minX="0" maxX="8" nBinsY="8" minY="0" maxY="8" drawOption="colz">
+      
+      <!-- Per-channel spectra-->
+      <for id="channelNum" begin="0" end="71" increment="1">
+        <bookElement type="TH1D" path="/Spectra" name="SpectrumCh$FOR{channelNum}" title="Spectrum for channel $FOR{channelNum}" nBinsX="750" minX="0" maxX="750">
+        </bookElement>
+      </for>
+
+      <bookElement type="TH1I" path="/" name="ADC_Spectrum" title="Spectrum of all ADCs" nBinsX="150" minX="0" maxX="1500">
       </bookElement>
+
+      <!-- Hitmaps -->
+      <bookElement type="TH2D" path="/" name="Hitmap" title="Hitmap of the example detector" nBinsX="6" minX="0" maxX="5" nBinsY="6" minY="0" maxY="5">
+      </bookElement>
+
     </monitorElements>
   </storage>
 

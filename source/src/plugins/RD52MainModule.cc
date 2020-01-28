@@ -94,19 +94,17 @@ namespace dqm4hep {
       online::OnlineElementPtr m_pTowerPlotSc_Cal;
       online::OnlineElementPtr m_pTowerPlotScMean_Cal;
 
-      /*
-      online::OnlineElementPtr m_pTowerPlotSc;
-      online::OnlineElementPtr m_pTowerPlotCh;
-
       online::OnlineElementPtr m_pTowerPlotScPion;
-      online::OnlineElementPtr m_pTowerPlotChPion;
+      online::OnlineElementPtr m_pTowerPlotScMeanPion;
+      online::OnlineElementPtr m_pTowerPlotScPion_Cal;
+      online::OnlineElementPtr m_pTowerPlotScMeanPion_Cal;
 
       online::OnlineElementPtr m_pTowerPlotScMuon;
-      online::OnlineElementPtr m_pTowerPlotChMuon;
+      online::OnlineElementPtr m_pTowerPlotScMeanMuon;
+      online::OnlineElementPtr m_pTowerPlotScMuon_Cal;
+      online::OnlineElementPtr m_pTowerPlotScMeanMuon_Cal;
 
-      online::OnlineElementPtr m_ptowerPlotMeanSc;
-      online::OnlineElementPtr m_ptowerPlotMeanCh;
-      */
+      online::OnlineElementPtr m_pTowerPlotHeatmapMean;
 
       int towerNumber;
 
@@ -164,19 +162,18 @@ namespace dqm4hep {
       m_pTowerPlotSc_Cal     = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotSc_Cal");
       m_pTowerPlotScMean_Cal = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScMean_Cal");
 
-      /*
-      m_pTowerPlotSc = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotSc");
-      m_pTowerPlotCh = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotCh");
+      m_pTowerPlotScPion         = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScPion");
+      m_pTowerPlotScMeanPion     = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScMeanPion");
+      m_pTowerPlotScPion_Cal     = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScPion_Cal");
+      m_pTowerPlotScMeanPion_Cal = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScMeanPion_Cal");
 
-      m_pTowerPlotScPion = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScPion");
-      m_pTowerPlotChPion = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotChPion");
+      m_pTowerPlotScMuon         = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScMuon");
+      m_pTowerPlotScMeanMuon     = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScMeanMuon");
+      m_pTowerPlotScMuon_Cal     = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScMuon_Cal");
+      m_pTowerPlotScMeanMuon_Cal = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScMeanMuon_Cal");
 
-      m_pTowerPlotScMuon = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotScMuon");
-      m_pTowerPlotChMuon = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotChMuon");
+      m_pTowerPlotHeatmapMean    = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotHeatmapMean");
 
-      m_ptowerPlotMeanSc = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotMeanSc");
-      m_ptowerPlotMeanCh = online::ModuleApi::getMonitorElement(this, "/", "TowerPlotMeanCh");
-      */
     }
     
     //-------------------------------------------------------------------------------------------------
@@ -201,19 +198,51 @@ namespace dqm4hep {
     
     void RD52MainModule::endOfRun(const core::Run &/*run*/) {
 
-      // We can also do the same with m_pTotalADCCh and m_pTotalADCSc, and with m_pE which is the histogram of total energy
-
       TF2 *f2 = new TF2("f2", "xygaus", 0, 36, 0, 50);
-      /*
+      
       m_pTowerPlotSc->objectTo<TH2D>()->Fit("f2");
       m_pTowerPlotSc_Cal->objectTo<TH2D>()->Fit("f2");
+      m_pTowerPlotScPion->objectTo<TH2D>()->Fit("f2");
+      m_pTowerPlotScPion_Cal->objectTo<TH2D>()->Fit("f2");
+      m_pTowerPlotScMuon->objectTo<TH2D>()->Fit("f2");
+      m_pTowerPlotScMuon_Cal->objectTo<TH2D>()->Fit("f2");
 
       double towerMeanSc = m_pTowerPlotSc->objectTo<TH2D>()->GetFunction("f2")->GetParameter(3); // 3 gets MeanY
       double towerMeanSc_Cal = m_pTowerPlotSc_Cal->objectTo<TH2D>()->GetFunction("f2")->GetParameter(3);
+      double towerMeanScPion = m_pTowerPlotScPion->objectTo<TH2D>()->GetFunction("f2")->GetParameter(3);
+      double towerMeanScPion_Cal = m_pTowerPlotScPion_Cal->objectTo<TH2D>()->GetFunction("f2")->GetParameter(3);
+      double towerMeanScMuon = m_pTowerPlotScMuon->objectTo<TH2D>()->GetFunction("f2")->GetParameter(3);
+      double towerMeanScMuon_Cal = m_pTowerPlotScMuon_Cal->objectTo<TH2D>()->GetFunction("f2")->GetParameter(3);
 
       m_pTowerPlotScMean->objectTo<TGraph>()->SetPoint(towerNumber, towerNumber, towerMeanSc);
       m_pTowerPlotScMean_Cal->objectTo<TGraph>()->SetPoint(towerNumber, towerNumber, towerMeanSc_Cal);
-      */
+      m_pTowerPlotScMeanPion->objectTo<TGraph>()->SetPoint(towerNumber, towerNumber, towerMeanScPion);
+      m_pTowerPlotScMeanPion_Cal->objectTo<TGraph>()->SetPoint(towerNumber, towerNumber, towerMeanScPion_Cal);
+      m_pTowerPlotScMeanMuon->objectTo<TGraph>()->SetPoint(towerNumber, towerNumber, towerMeanScMuon);
+      m_pTowerPlotScMeanMuon_Cal->objectTo<TGraph>()->SetPoint(towerNumber, towerNumber, towerMeanScMuon_Cal);
+
+      dqm_warning("MeanMuon: {0}", towerMeanScMuon);
+      
+
+      // Making a heatmap of the detector
+      int towerX;
+      int towerY;
+      if ((towerNumber % 6) == 0) {
+	towerX = 5;
+	towerY = -1*(int(towerNumber/6.0)-1);
+      }
+      else {
+	towerX = (towerNumber % 6)-1;
+	towerY = -1*(int(towerNumber/6.0));
+      }
+      m_pTowerPlotHeatmapMean->objectTo<TH2D>()->Fill(towerX, towerY, towerMeanSc);
+      dqm_warning("Tower {0} with co-ordinates {1}, {2}", towerNumber, towerX, towerY);
+      //m_pTowerPlotHeatmapMean->objectTo<TH2D>()->Fill(towerX, towerY, towerMeanSc_Cal);
+      //m_pTowerPlotHeatmapMean->objectTo<TH2D>()->Fill(towerX, towerY, towerMeanScPion);
+      //m_pTowerPlotHeatmapMean->objectTo<TH2D>()->Fill(towerX, towerY, towerMeanScPion_Cal);
+      //m_pTowerPlotHeatmapMean->objectTo<TH2D>()->Fill(towerX, towerY, towerMeanScMuon);
+      //m_pTowerPlotHeatmapMean->objectTo<TH2D>()->Fill(towerX, towerY, towerMeanScMuon_Cal);
+
     }
     
     //-------------------------------------------------------------------------------------------------
@@ -523,15 +552,39 @@ namespace dqm4hep {
       calibrationMapSc[28] = 0.5690;
       calibrationMapSc[29] = 0.4405;
 
-      /*
-      calibrationMapSc[30] = 0.4572;
-      calibrationMapSc[31] = 3.3256;
-      calibrationMapSc[32] = 1.7073;
-      calibrationMapSc[33] = 2.0475;
-      calibrationMapSc[34] = 2.7585;
-      calibrationMapSc[35] = 0.5324;
-      calibrationMapSc[36] = 1.0;
-      */
+      //std::array<double,36> calibrationMapScPion;
+      //calibrationMapScPion[1] = 0.0000;
+
+      std::array<double,36> calibrationMapScMuon;
+      calibrationMapScMuon[1]  = 0.3665;
+      calibrationMapScMuon[2]  = 0.3184;
+      calibrationMapScMuon[3]  = 0.4455;
+      calibrationMapScMuon[4]  = 0.3534;
+      calibrationMapScMuon[5]  = 0.3957;
+      calibrationMapScMuon[6]  = 0.4564;
+      calibrationMapScMuon[7]  = 0.6262;
+      calibrationMapScMuon[8]  = 0.7570;
+      calibrationMapScMuon[9]  = 0.7522;
+      calibrationMapScMuon[10] = 0.7500;
+      calibrationMapScMuon[11] = 0.5302;
+      calibrationMapScMuon[12] = 0.5172;
+      calibrationMapScMuon[13] = 0.3943;
+      calibrationMapScMuon[14] = 0.9303;
+      calibrationMapScMuon[15] = 1.0;
+      calibrationMapScMuon[16] = 0.6825;
+      calibrationMapScMuon[17] = 0.1170;
+      calibrationMapScMuon[18] = 0.5217;
+      calibrationMapScMuon[19] = 0.3486;
+      calibrationMapScMuon[20] = 1.1079;
+      calibrationMapScMuon[21] = 0.9527;
+      calibrationMapScMuon[22] = 0.8903;
+      calibrationMapScMuon[23] = 0.7376;
+      calibrationMapScMuon[24] = 0.5899;
+      calibrationMapScMuon[25] = 0.3769;
+      calibrationMapScMuon[26] = 0.4376;
+      calibrationMapScMuon[27] = 0.4778;
+      calibrationMapScMuon[28] = 0.5078;
+      calibrationMapScMuon[29] = 0.4671;
 
       int runNumber = pEvent->getRunNumber();
       int eventNumber = pEvent->getEventNumber();
@@ -572,16 +625,14 @@ namespace dqm4hep {
 	m_pTowerPlotSc->objectTo<TH2D>()->Fill(towerNumber, towerADCSc);
 	m_pTowerPlotSc_Cal->objectTo<TH2D>()->Fill(towerNumber, towerADCSc*calibrationMapSc[towerNumber]);
 
-	/*
-	if ( (isMuonEvent == true) && ((preshowerADC<20) && (muonADC>10)) ) {
-	  m_pTowerPlotScMuon->objectTo<TH2D>()->Fill(towerNumber, towerADCSc*calibrationMapSc[towerNumber]);
-	  m_pTowerPlotChMuon->objectTo<TH2D>()->Fill(towerNumber, towerADCCh*calibrationMapCh[towerNumber]);
+	if ( ((preshowerADC<20) && (muonADC>10)) ) {
+	  m_pTowerPlotScMuon->objectTo<TH2D>()->Fill(towerNumber, towerADCSc);
+	  m_pTowerPlotScMuon_Cal->objectTo<TH2D>()->Fill(towerNumber, towerADCSc*calibrationMapScMuon[towerNumber]);
 	}
-	if ( (isMuonEvent == false) && ((preshowerADC<20) && (muonADC<5)) ) {
-	  m_pTowerPlotScPion->objectTo<TH2D>()->Fill(towerNumber, towerADCSc*calibrationMapSc[towerNumber]);
-	  m_pTowerPlotChPion->objectTo<TH2D>()->Fill(towerNumber, towerADCCh*calibrationMapCh[towerNumber]);
+	if ( ((preshowerADC<20) && (muonADC<5)) ) {
+	  m_pTowerPlotScPion->objectTo<TH2D>()->Fill(towerNumber, towerADCSc);
+	  m_pTowerPlotScPion_Cal->objectTo<TH2D>()->Fill(towerNumber, towerADCSc*calibrationMapScMuon[towerNumber]);
 	}
-	*/
 
       }
 

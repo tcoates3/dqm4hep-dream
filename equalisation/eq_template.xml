@@ -1,4 +1,4 @@
- <dqm4hep>
+<dqm4hep>
   
   <!-- Application settings -->
   <settings mode="EventReader">
@@ -101,19 +101,39 @@
       <bookElement type="TH2D" path="/Hitmaps" name="CherenkovLayer" title="Hitmap (Cherenkov)" nBinsX="6" minX="0" maxX="6" nBinsY="6" minY="0" maxY="6">
       </bookElement>
 
-      <!-- Equalisiation plots -->
+      <!-- Equalisiation plots using all particles -->
       <bookElement type="TH2D" path="/" name="TowerPlotSc" title="Scintillator ADC by Tower" nBinsX="40" minX="0" maxX="40" nBinsY="30" minY="0" maxY="600">
       </bookElement>
-
       <bookElement type="TGraph" path="/" name="TowerPlotScMean" title="Mean scintillator ADC by Tower" minX="0" maxX="40" minY="0" maxY="600">
       </bookElement>
-
       <bookElement type="TH2D" path="/" name="TowerPlotSc_Cal" title="Scintillator ADC by Tower (calibrated)" nBinsX="40" minX="0" maxX="40" nBinsY="30" minY="0" maxY="600">
       </bookElement>
-
       <bookElement type="TGraph" path="/" name="TowerPlotScMean_Cal" title="Mean scintillator ADC by Tower (calibrated)" minX="0" maxX="40" minY="0" maxY="600">
       </bookElement>
 
+      <!-- Equalisiation plots using muons -->
+      <bookElement type="TH2D" path="/" name="TowerPlotScPion" title="Scintillator pion ADC by Tower" nBinsX="40" minX="0" maxX="40" nBinsY="30" minY="0" maxY="600">
+      </bookElement>
+      <bookElement type="TGraph" path="/" name="TowerPlotScMeanPion" title="Mean scintillator pion ADC by Tower" minX="0" maxX="40" minY="0" maxY="600">
+      </bookElement>
+      <bookElement type="TH2D" path="/" name="TowerPlotScPion_Cal" title="Scintillator pion ADC by Tower (calibrated)" nBinsX="40" minX="0" maxX="40" nBinsY="30" minY="0" maxY="600">
+      </bookElement>
+      <bookElement type="TGraph" path="/" name="TowerPlotScMeanPion_Cal" title="Mean scintillator pion ADC by Tower (calibrated)" minX="0" maxX="40" minY="0" maxY="600">
+      </bookElement>
+
+      <!-- Equalisiation plots using muons -->
+      <bookElement type="TH2D" path="/" name="TowerPlotScMuon" title="Scintillator muon ADC by Tower" nBinsX="40" minX="0" maxX="40" nBinsY="30" minY="0" maxY="600">
+      </bookElement>
+      <bookElement type="TGraph" path="/" name="TowerPlotScMeanMuon" title="Mean scintillator muon ADC by Tower" minX="0" maxX="40" minY="0" maxY="600">
+      </bookElement>
+      <bookElement type="TH2D" path="/" name="TowerPlotScMuon_Cal" title="Scintillator muon ADC by Tower (calibrated)" nBinsX="40" minX="0" maxX="40" nBinsY="30" minY="0" maxY="600">
+      </bookElement>
+      <bookElement type="TGraph" path="/" name="TowerPlotScMeanMuon_Cal" title="Mean scintillator muon ADC by Tower (calibrated)" minX="0" maxX="40" minY="0" maxY="600">
+      </bookElement>
+
+
+      <bookElement type="TH2D" path="/" name="TowerPlotHeatmapMean" title="Mean scintillator ADC by tower heatmap" nBinsX="9" minX="-1" maxX="7" nBinsY="9" minY="-1" maxY="-7">
+      </bookElement>
 
     </monitorElements>
   </storage>
